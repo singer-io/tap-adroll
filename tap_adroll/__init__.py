@@ -1,17 +1,14 @@
 import singer
 from singer import utils
 from singer.catalog import Catalog, write_catalog
+from tap_adroll.discover import do_discover
 
 LOGGER = singer.get_logger()
 
-def do_discover():
-    pass
 
 def do_sync(client, config, state, catalog):
     pass
 
-def write_catalog(catalog):
-    pass
 
 @utils.handle_top_exception(LOGGER)
 def main():
