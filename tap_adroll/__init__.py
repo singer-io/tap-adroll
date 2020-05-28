@@ -2,6 +2,7 @@ import singer
 from singer import utils
 from singer.catalog import Catalog, write_catalog
 from tap_adroll.discover import do_discover
+from tap_adroll.client import AdrollClient
 
 LOGGER = singer.get_logger()
 
@@ -16,10 +17,10 @@ def main():
     required_config_keys = []
     args = singer.parse_args(required_config_keys)
 
-    config = args.config  # pylint:disable=unused-variable
-    #client = TrelloClient(config)  # pylint:disable=unused-variable
+    config = args.config
+    client = AdrollClient(args.config_path, config)
     catalog = args.catalog or Catalog([])
-    state = args.state # pylint:disable=unused-variable
+    state = args.state
 
     if args.properties and not args.catalog:
         raise Exception("DEPRECATED: Use of the 'properties' parameter is not supported. Please use --catalog instead")
