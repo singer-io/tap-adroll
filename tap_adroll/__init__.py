@@ -3,6 +3,7 @@ from singer import utils
 from singer.catalog import Catalog, write_catalog
 from tap_adroll.discover import do_discover
 from tap_adroll.client import AdrollClient
+from tap_adroll.sync import do_sync
 
 LOGGER = singer.get_logger()
 
@@ -31,7 +32,7 @@ def main():
         write_catalog(catalog)
     else:
         LOGGER.info("do_sync")
-        #do_sync(client, config, state, catalog)
+        do_sync(client, config, state, catalog)
 
 if __name__ == "__main__":
     main()
