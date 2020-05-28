@@ -1,75 +1,54 @@
 import requests
 from requests_oauthlib import OAuth2Session
 
-import singer
 import backoff
+import json
+import singer
 
 LOGGER = singer.get_logger()
-ENDPOINT_BASE = "https://services.adroll.com/api/v1"
+ENDPOINT_BASE = "https://services.adroll.com/api/v1/"
+TOKEN_REFRESH_URL = 'https://services.adroll.com/auth/token'
+
+
+class AdrollAuthenticationError(Exception):
+    pass
+
 
 class AdrollClient():
     def __init__(self, config_path, config):
         token = {
-            # access_token
-            # refresh_token
-            # token_type
-            # expires_in -- I think we want to fudge this so it thinks its always expired on the first run / request
+            'access_token': config['access_token'],
+            'refresh_token': config['refresh_token'],
+            'token_type': 'Bearer',
+            # Set expires_in to a negative number to force the client to reauthenticate
+            'expires_in': '-30'
         }
         extra = {
-            # client_id
-            # client_secret
+            'client_id': config['client_id'],
+            'client_secret': config['client_secret']
         }
-        self.session = OAuth2Session(client_id, token=token, auto_refresh_url=refresh_url,
-                                     auto_refresh_kwargs=extra, token_updater=_write_config)
-
+        self.config_path = config_path
+        self.session = OAuth2Session(config['client_id'], token=token, auto_refresh_url=TOKEN_REFRESH_URL,
+                                     auto_refresh_kwargs=extra, token_updater=self._write_config)
         try:
             # Make an authenticated request after creating the object to any endpoint
-        except:
-            # raise out an exception for unauthenticated
+            self.get('organization/get')
+        except Exception as e:
+            LOGGER.info("Error initializing AdrollClient during token refresh, please reauthenticate.")
+            raise AdrollAuthenticationError(e)
 
 
-    def _write_config(self):
+    def _write_config(self, token):
+        LOGGER.info("Credentials Refreshed")
         # Update config at config_path
         with open(self.config_path) as file:
             config = json.load(file)
 
-        config['refresh_token'] = self.refresh_token
-        config['access_token'] = self.access_token
+        config['refresh_token'] = token['refresh_token']
+        config['access_token'] = token['access_token']
 
         with open(self.config_path, 'w') as file:
             json.dump(config, file, indent=2)
-
-    # Delete this function, I think
-    def refresh(self):
-        LOGGER.info("Refreshing credentials")
-
-        auth_token = base64.b64encode((self.client_id + ':' + self.client_secret).encode()).decode()
-
-        headers = {
-            'Authorization': "Basic {}".format(auth_token),
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
-
-
-        # Here
-        url = "https://services.adroll.com/auth/token"
-
-        body = 'grant_type=refresh_token&refresh_token={}'.format(self.refresh_token)
-        request = requests.Request("POST", url, headers=headers, data=body)
-        response = self.session.send(request.prepare())
-
-        response = response.json()
-
-        # to here.
-        if response.get('error') == 'invalid_grant':
-            raise XeroUnauthorized("Cannot authenticate")
-
-        # Update local copies
-        self.access_token = response['access_token']
-        self.refresh_token = response['refresh_token']
-
-        # Update config on filesystem
-        self.write_config()
 
         
     @backoff.on_exception(backoff.constant,
@@ -86,7 +65,8 @@ class AdrollClient():
             params,
         )
 
-        response = requests.request(method, full_url, headers=headers, params=params)
+        # TODO: We should merge headers with some default headers like user_agent
+        response = self.session.request(method, full_url, headers=headers, params=params)
 
         response.raise_for_status()
         # TODO: Check error status, rate limit, etc.
