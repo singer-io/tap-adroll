@@ -11,7 +11,7 @@ setup(name='tap-adroll',
       py_modules=['tap_adroll'],
       install_requires=[
           'requests==2.23.0',
-          'requests_oauthlib==1.3.0'
+          'requests_oauthlib==1.3.0',
           'singer-python==5.9.0',
       ],
       extras_require={

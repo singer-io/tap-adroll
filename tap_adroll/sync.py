@@ -7,12 +7,6 @@ LOGGER = singer.get_logger()
 
 
 def do_sync(client, config, state, catalog):
-    # stream_object = STREAM_OBJECTS.get("boards")(client, config, state)
-    # for rec in stream_object.sync():
-    #     singer.write_record(
-    #         "boards",
-    #         rec
-    #     )
     selected_streams = catalog.get_selected_streams(state)
 
     for stream in selected_streams:
@@ -36,6 +30,7 @@ def do_sync(client, config, state, catalog):
             for rec in stream_object.sync():
                 singer.write_record(
                     stream_id,
+                    rec,
                     transformer.transform(
                         rec, stream.schema.to_dict(), metadata.to_map(stream.metadata),
                     )

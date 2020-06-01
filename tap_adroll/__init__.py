@@ -8,14 +8,9 @@ from tap_adroll.sync import do_sync
 LOGGER = singer.get_logger()
 
 
-def do_sync(client, config, state, catalog):
-    pass
-
-
 @utils.handle_top_exception(LOGGER)
 def main():
-    #required_config_keys = ['start_date']
-    required_config_keys = []
+    required_config_keys = ['start_date']
     args = singer.parse_args(required_config_keys)
 
     config = args.config

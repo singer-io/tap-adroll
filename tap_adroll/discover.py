@@ -3,7 +3,7 @@ import json
 
 from singer import metadata
 from singer.catalog import Catalog
-#from .streams import STREAM_OBJECTS
+from .streams import STREAM_OBJECTS
 
 
 def _get_abs_path(path):
@@ -29,18 +29,19 @@ def do_discover():
 
     for stream_name, schema in raw_schemas.items():
         # create and add catalog entry
-        #stream = STREAM_OBJECTS[stream_name]
+        stream = STREAM_OBJECTS[stream_name]
+
         catalog_entry = {
             "stream": stream_name,
             "tap_stream_id": stream_name,
             "schema": schema,
             "metadata": metadata.get_standard_metadata(
                 schema=schema,
-                key_properties=["id"],
-                valid_replication_keys=[],
-                replication_method="INCREMENTAL",
+                key_properties=stream.key_properties,
+                valid_replication_keys=stream.replication_keys,
+                replication_method=stream.replication_method,
             ),
-            "key_properties": ["id"]
+            "key_properties": stream.key_properties
         }
         catalog_entries.append(catalog_entry)
 
