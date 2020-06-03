@@ -29,4 +29,4 @@ class Advertisables:
 
 STREAM_OBJECTS = {
     'advertisables': Advertisables,
- }
+}
