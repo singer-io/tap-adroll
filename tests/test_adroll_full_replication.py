@@ -113,6 +113,32 @@ class TestAdrollFullReplication(unittest.TestCase):
             self, conn_id, self.expected_streams(), self.expected_primary_keys())
         return sync_record_count
 
+    def preserve_refresh_token(self, existing_conns, payload):
+        if not existing_conns:
+            return payload
+        conn_with_creds = connections.fetch_existing_connection_with_creds(existing_conns[0]['id'])
+        payload['properties']['refresh_token'] = conn_with_creds['credentials']['refresh_token']
+        return payload
+
+    def test_sync_no_data_required(self):
+        """
+        Verify that sync can be run without throwing an exception
+        """
+        conn_id = connections.ensure_connection(self, payload_hook=self.preserve_refresh_token)
+
+        # Select all streams and no fields within streams
+        found_catalogs = menagerie.get_catalogs(conn_id)
+        full_streams = {key for key, value in self.expected_replication_method().items()
+                        if value == self.FULL}
+        our_catalogs = [catalog for catalog in found_catalogs if
+                        catalog.get('tap_stream_id') in full_streams]
+        self.select_all_streams_and_fields(conn_id, our_catalogs, select_all_fields=True)
+
+        # Run a sync job using orchestrator
+        self.run_sync(conn_id)
+
+    # Expected to fail because no data in adroll
+    @unittest.expectedFailure
     def test_run(self):
         """
         Verify that a bookmark doesn't exist for the stream
@@ -124,14 +150,7 @@ class TestAdrollFullReplication(unittest.TestCase):
         For EACH stream that is fully replicated there are multiple rows of data with
             different values for the replication key
         """
-        def preserve_refresh_token(existing_conns, payload):
-            if not existing_conns:
-                return payload
-            conn_with_creds = connections.fetch_existing_connection_with_creds(existing_conns[0]['id'])
-            payload['properties']['refresh_token'] = conn_with_creds['credentials']['refresh_token']
-            return payload
-
-        conn_id = connections.ensure_connection(self, payload_hook=preserve_refresh_token)
+        conn_id = connections.ensure_connection(self, payload_hook=self.preserve_refresh_token)
 
         # Select all streams and no fields within streams
         found_catalogs = menagerie.get_catalogs(conn_id)
@@ -145,7 +164,12 @@ class TestAdrollFullReplication(unittest.TestCase):
         first_sync_record_count = self.run_sync(conn_id)
 
         # verify that the sync only sent records to the target for selected streams (catalogs)
-        self.assertEqual(set(first_sync_record_count.keys()), full_streams)
+        self.assertEqual(set(first_sync_record_count.keys()), full_streams,
+                         msg="Expect first_sync_record_count keys {} to equal full_streams {},"
+                         " first_sync_record_count was {}".format(
+                             first_sync_record_count.keys(),
+                             full_streams,
+                             first_sync_record_count))
 
         first_sync_state = menagerie.get_state(conn_id)
 
