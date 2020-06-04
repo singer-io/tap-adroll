@@ -40,7 +40,7 @@ class TestAdrollBase(unittest.TestCase):
     def get_credentials():
         return {
             'refresh_token': os.getenv('TAP_ADROLL_REFRESH_TOKEN'),
-            'client_id': os.getenv('TAP_ADROLL_CLIENT_ID')
+            'client_id': os.getenv('TAP_ADROLL_CLIENT_ID'),
             'client_secret': os.getenv('TAP_ADROLL_CLIENT_SECRET'),
             'access_token': 'fake'
         }
