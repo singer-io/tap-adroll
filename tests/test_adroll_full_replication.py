@@ -2,8 +2,9 @@ import tap_tester.connections as connections
 import tap_tester.menagerie   as menagerie
 import tap_tester.runner      as runner
 import unittest
+import json
 
-from base import TestAdrollBase
+from .base import TestAdrollBase
 
 class TestAdrollFullReplication(TestAdrollBase):
     def name(self):

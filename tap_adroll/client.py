@@ -1,9 +1,9 @@
-import requests
-from requests_oauthlib import OAuth2Session
-
-import backoff
 import json
+import backoff
+import requests
 import singer
+
+from requests_oauthlib import OAuth2Session
 
 LOGGER = singer.get_logger()
 ENDPOINT_BASE = "https://services.adroll.com/api/v1/"
@@ -53,7 +53,7 @@ class AdrollClient():
         with open(self.config_path, 'w') as file:
             json.dump(config, file, indent=2)
 
-        
+
     @backoff.on_exception(backoff.constant,
                           (requests.exceptions.HTTPError),
                           max_tries=3,

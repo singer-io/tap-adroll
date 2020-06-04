@@ -30,6 +30,7 @@ def do_sync(client, config, state, catalog):
             for rec in stream_object.sync():
                 singer.write_record(
                     stream_id,
-                    transformer.transform(rec, stream.schema.to_dict(), metadata.to_map(stream.metadata),
-                    )
+                    transformer.transform(rec,
+                                          stream.schema.to_dict(),
+                                          metadata.to_map(stream.metadata))
                 )
