@@ -27,9 +27,7 @@ setup(name='tap-adroll',
       ''',
       packages=['tap_adroll'],
       package_data = {
-          'tap_adroll/schemas': [
-              # add schema.json filenames here
-          ]
+          "tap_adroll": ["tap_adroll/schemas/*.json"]
       },
       include_package_data=True,
 )
