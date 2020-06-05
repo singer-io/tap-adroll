@@ -1,6 +1,7 @@
-import tap_tester.connections as connections
 import os
 import unittest
+
+import tap_tester.connections as connections
 
 class TestAdrollBase(unittest.TestCase):
     REPLICATION_KEYS = "valid-replication-keys"
@@ -17,22 +18,26 @@ class TestAdrollBase(unittest.TestCase):
             "TAP_ADROLL_REFRESH_TOKEN",
             "TAP_ADROLL_CLIENT_ID",
             "TAP_ADROLL_CLIENT_SECRET",
-        ] if os.getenv(x) == None]
-        if len(missing_envs) != 0:
+        ] if os.getenv(x) is None]
+        if missing_envs:
             raise Exception("Missing environment variables: {}".format(missing_envs))
 
-    def get_type(self):
+    @staticmethod
+    def get_type():
         return "platform.adroll"
 
-    def tap_name(self):
+    @staticmethod
+    def tap_name():
         return "tap-adwords"
 
-    def get_properties(self):
+    @staticmethod
+    def get_properties():
         return {
             'start_date' : '2020-03-01T00:00:00Z'
         }
 
-    def get_credentials(self):
+    @staticmethod
+    def get_credentials():
         return {
             'refresh_token': os.getenv('TAP_ADROLL_REFRESH_TOKEN'),
             'client_id': os.getenv('TAP_ADROLL_CLIENT_ID'),
@@ -40,7 +45,8 @@ class TestAdrollBase(unittest.TestCase):
             'access_token': 'fake'
         }
 
-    def expected_check_streams(self):
+    @staticmethod
+    def expected_check_streams():
         return {
             'advertisables',
         }
@@ -74,7 +80,8 @@ class TestAdrollBase(unittest.TestCase):
                 for table, properties
                 in self.expected_metadata().items()}
 
-    def preserve_refresh_token(self, existing_conns, payload):
+    @staticmethod
+    def preserve_refresh_token(existing_conns, payload):
         if not existing_conns:
             return payload
         conn_with_creds = connections.fetch_existing_connection_with_creds(existing_conns[0]['id'])

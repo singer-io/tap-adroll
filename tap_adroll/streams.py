@@ -1,8 +1,4 @@
-from datetime import datetime, timedelta
-from itertools import dropwhile
 import singer
-
-from singer import utils
 
 LOGGER = singer.get_logger()
 
