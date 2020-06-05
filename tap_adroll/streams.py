@@ -15,6 +15,10 @@ class Advertisables:
         self.config = config
         self.state = state
 
+    def get_all_advertisable_eids(self):
+        records = self.client.get(self.endpoint)
+        for rec in records.get('results'):
+            yield rec['eid']
 
     def sync(self):
         records = self.client.get(self.endpoint)
@@ -34,19 +38,17 @@ class Ads:
         self.config = config
         self.state = state
 
-    def get_advertisable_eids(self):
-        records = self.client.get(Advertisables.endpoint)
-        for rec in records.get('results'):
-            yield rec['eid']
-
     def sync(self):
-        advertisable_eids = self.get_advertisable_eids()
-        for advertisable_eid in self.get_advertisable_eids():
+        advertisables = Advertisables(self.client, self.config, self.state)
+        for advertisable_eid in advertisables.get_all_advertisable_eids():
             records = self.client.get(self.endpoint, params={
                 'advertisable': advertisable_eid
             })
             for rec in records.get('results'):
                 yield rec
+
+class AdReports:
+    key_properties = ["eid", "date"]
 
 
 STREAM_OBJECTS = {
