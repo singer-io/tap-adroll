@@ -11,19 +11,12 @@ class TestAdrollFullReplication(TestAdrollBase):
         return "tap_tester_adroll_full_replication"
 
     @staticmethod
-    def select_all_streams_and_fields(conn_id, catalogs, select_all_fields: bool = True):
+    def select_all_streams_and_fields(conn_id, catalogs):
         """Select all streams and all fields within streams"""
         for catalog in catalogs:
             schema = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])
 
-            non_selected_properties = []
-            if not select_all_fields:
-                # get a list of all properties so that none are selected
-                non_selected_properties = schema.get('annotated-schema', {}).get(
-                    'properties', {}).keys()
-
-            connections.select_catalog_and_fields_via_metadata(
-                conn_id, catalog, schema, [], non_selected_properties)
+            connections.select_catalog_and_fields_via_metadata(conn_id, catalog, schema)
 
     def run_sync(self, conn_id):
         """
@@ -43,25 +36,7 @@ class TestAdrollFullReplication(TestAdrollBase):
             self, conn_id, self.expected_streams(), self.expected_primary_keys())
         return sync_record_count
 
-    def test_sync_no_data_required(self):
-        """
-        Verify that sync can be run without throwing an exception
-        """
-        conn_id = connections.ensure_connection(self, payload_hook=self.preserve_refresh_token)
-
-        # Select all streams and no fields within streams
-        found_catalogs = menagerie.get_catalogs(conn_id)
-        full_streams = {key for key, value in self.expected_replication_method().items()
-                        if value == self.FULL}
-        our_catalogs = [catalog for catalog in found_catalogs if
-                        catalog.get('tap_stream_id') in full_streams]
-        self.select_all_streams_and_fields(conn_id, our_catalogs, select_all_fields=True)
-
-        # Run a sync job using orchestrator
-        self.run_sync(conn_id)
-
     # Expected to fail because no data in adroll
-    @unittest.expectedFailure
     def test_run(self):
         """
         Verify that a bookmark doesn't exist for the stream
@@ -75,13 +50,20 @@ class TestAdrollFullReplication(TestAdrollBase):
         """
         conn_id = connections.ensure_connection(self, payload_hook=self.preserve_refresh_token)
 
+        #run in check mode
+        check_job_name = runner.run_check_mode(self, conn_id)
+
+        #verify check  exit codes
+        exit_status = menagerie.get_exit_status(conn_id, check_job_name)
+        menagerie.verify_check_exit_status(self, exit_status, check_job_name)
+        
         # Select all streams and no fields within streams
         found_catalogs = menagerie.get_catalogs(conn_id)
         full_streams = {key for key, value in self.expected_replication_method().items()
                         if value == self.FULL}
         our_catalogs = [catalog for catalog in found_catalogs if
                         catalog.get('tap_stream_id') in full_streams]
-        self.select_all_streams_and_fields(conn_id, our_catalogs, select_all_fields=True)
+        self.select_all_streams_and_fields(conn_id, our_catalogs)
 
         # Run a sync job using orchestrator
         first_sync_record_count = self.run_sync(conn_id)
@@ -100,14 +82,15 @@ class TestAdrollFullReplication(TestAdrollBase):
         first_sync_records = runner.get_records_from_target_output()
 
         # Run a second sync job using orchestrator
-        second_sync_record_count = runner.run_sync_mode(self, conn_id)
+        second_sync_record_count = self.run_sync(conn_id)
 
         # Get the set of records from a second sync
         second_sync_records = runner.get_records_from_target_output()
 
-        # THIS MAKES AN ASSUMPTION THAT CHILD STREAMS DO NOT NEED TESTING.
-        # ADJUST IF NECESSARY
-        for stream in full_streams.difference(self.child_streams()):
+        # Loop first_sync_records and compare against second_sync_records
+        # each iteration of loop is chekcing both for a stream
+        # first_sync_records["ads"] == second["ads"]
+        for stream in full_streams:
             with self.subTest(stream=stream):
 
                 # verify there is no bookmark values from state
