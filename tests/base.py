@@ -59,6 +59,7 @@ class TestAdrollBase(unittest.TestCase):
     def expected_check_streams():
         return {
             'advertisables',
+            'ads',
         }
 
     def expected_metadata(self):
@@ -66,6 +67,10 @@ class TestAdrollBase(unittest.TestCase):
 
         return {
             "advertisables": {
+                self.PRIMARY_KEYS: {'eid'},
+                self.REPLICATION_METHOD: self.FULL,
+            },
+            "ads": {
                 self.PRIMARY_KEYS: {'eid'},
                 self.REPLICATION_METHOD: self.FULL,
             },
