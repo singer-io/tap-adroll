@@ -13,7 +13,7 @@ class TestAdrollBase(unittest.TestCase):
     API_LIMIT = "max-row-limit"
     INCREMENTAL = "INCREMENTAL"
     FULL = "FULL_TABLE"
-    START_DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+    START_DATE_FORMAT = "%Y-%m-%dT00:00:00Z" # %H:%M:%SZ
 
     def setUp(self):
         missing_envs = [x for x in [
