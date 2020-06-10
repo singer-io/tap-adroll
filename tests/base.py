@@ -28,7 +28,7 @@ class TestAdrollBase(unittest.TestCase):
 
     @staticmethod
     def tap_name():
-        return "tap-adwords"
+        return "tap-adroll"
 
     @staticmethod
     def get_properties():
