@@ -30,7 +30,7 @@ class TestAdrollBase(unittest.TestCase):
 
     @staticmethod
     def tap_name():
-        return "tap-adwords"
+        return "tap-adroll"
 
     def get_properties(self, original: bool = True):
         return_value = {
