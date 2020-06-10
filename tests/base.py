@@ -1,5 +1,7 @@
 import os
 import unittest
+from datetime import datetime as dt
+from datetime import timedelta
 
 import tap_tester.connections as connections
 
@@ -30,11 +32,19 @@ class TestAdrollBase(unittest.TestCase):
     def tap_name():
         return "tap-adwords"
 
-    @staticmethod
-    def get_properties():
-        return {
-            'start_date' : '2020-03-01T00:00:00Z'
-        }
+    def get_properties(self, original: bool = True):
+        return_value = {
+            'start_date' : dt.strftime(dt.utcnow(), self.START_DATE_FORMAT),  # set to utc today
+        } # 'start_date' : '2020-03-01T00:00:00Z'
+        if original:
+            return return_value
+
+        # Start Date test needs the new connections start date to be prior to the default
+        assert self.START_DATE < return_value["start_date"]
+
+        # Assign start date to be the default
+        return_value["start_date"] = self.START_DATE
+        return return_value
 
     @staticmethod
     def get_credentials():
