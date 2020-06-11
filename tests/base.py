@@ -3,6 +3,7 @@ import unittest
 from datetime import datetime as dt
 from datetime import timedelta
 
+import tap_tester.menagerie   as menagerie
 import tap_tester.connections as connections
 
 class TestAdrollBase(unittest.TestCase):
@@ -35,7 +36,7 @@ class TestAdrollBase(unittest.TestCase):
     def get_properties(self, original: bool = True):
         return_value = {
             'start_date' : dt.strftime(dt.utcnow(), self.START_DATE_FORMAT),  # set to utc today
-        } # 'start_date' : '2020-03-01T00:00:00Z'
+        }
         if original:
             return return_value
 
@@ -102,3 +103,25 @@ class TestAdrollBase(unittest.TestCase):
         conn_with_creds = connections.fetch_existing_connection_with_creds(existing_conns[0]['id'])
         payload['properties']['refresh_token'] = conn_with_creds['credentials']['refresh_token']
         return payload
+
+    @staticmethod
+    def select_all_streams_and_fields(conn_id, catalogs, select_all_fields: bool = True):
+        """Select all streams and all fields within streams"""
+        for catalog in catalogs:
+            schema = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])
+
+            non_selected_properties = []
+            if not select_all_fields:
+                # get a list of all properties so that none are selected
+                non_selected_properties = schema.get('annotated-schema', {}).get(
+                    'properties', {})
+                # remove properties that are automatic
+                for prop in self.expected_automatic_fields().get(catalog['stream_name'], []):
+                    if prop in non_selected_properties:
+                        del non_selected_properties[prop]
+            additional_md = []
+
+            connections.select_catalog_and_fields_via_metadata(
+                conn_id, catalog, schema, additional_md=additional_md,
+                non_selected_fields=non_selected_properties.keys()
+            )
