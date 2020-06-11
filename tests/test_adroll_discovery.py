@@ -19,7 +19,7 @@ class TestAdrollDiscovery(TestAdrollBase):
                 in self.expected_metadata().items()}
 
     def test_run(self):
-        conn_id = connections.ensure_connection(self, payload_hook=self.preserve_refresh_token)
+        conn_id = connections.ensure_connection(self)
 
         #run in check mode
         check_job_name = runner.run_check_mode(self, conn_id)

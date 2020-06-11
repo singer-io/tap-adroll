@@ -48,7 +48,7 @@ class TestAdrollFullReplication(TestAdrollBase):
         For EACH stream that is fully replicated there are multiple rows of data with
             different values for the replication key
         """
-        conn_id = connections.ensure_connection(self, payload_hook=self.preserve_refresh_token)
+        conn_id = connections.ensure_connection(self)
 
         #run in check mode
         check_job_name = runner.run_check_mode(self, conn_id)
