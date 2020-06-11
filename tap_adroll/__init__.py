@@ -26,7 +26,7 @@ def main():
         catalog = do_discover()
         write_catalog(catalog)
     else:
-        LOGGER.info("do_sync")
+        LOGGER.info("Starting sync mode")
         do_sync(client, config, state, catalog)
 
 if __name__ == "__main__":

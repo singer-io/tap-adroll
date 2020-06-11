@@ -18,7 +18,8 @@
     },
     "nbam_admin": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "rollcrawl_enabled": {
@@ -41,12 +42,14 @@
     },
     "abm_onboarding_status": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "source": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "is_constant_contact_syncing": {
@@ -81,7 +84,8 @@
     },
     "constant_contact_code": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "is_b2b": {
@@ -122,7 +126,8 @@
     },
     "safari_add_on_theme": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "business_unit": {
@@ -139,7 +144,8 @@
     },
     "campaign_monitor_client_id": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "is_abm_customer": {
@@ -192,7 +198,8 @@
     },
     "company_phone": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "admin_page_permission": {
@@ -209,7 +216,8 @@
     },
     "fbx_page_url": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "logo_url": {
@@ -220,7 +228,8 @@
     },
     "optimizer": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "is_marketo_syncing": {
@@ -237,17 +246,20 @@
     },
     "twitter_handle": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "account_suspension_reason": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "am_email": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "is_trusted": {
@@ -354,17 +366,20 @@
     },
     "fbx_page_id": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "instagram_actor_id": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "is_coop_approved": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "has_approved_consent_solution": {
@@ -375,7 +390,8 @@
     },
     "csm_admin": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "has_privacy_policy": {
@@ -410,7 +426,8 @@
     },
     "campaign_monitor_client_api_key": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "saleser": {
@@ -433,7 +450,8 @@
     },
     "country_code": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "is_salesforce_system_owned": {
@@ -486,7 +504,8 @@
     },
     "product_name": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "account": {
@@ -533,19 +552,22 @@
     },
     "liquidads": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "page_access_request_status": {
       "type": [
-        "null"
+        "null",
+        "string"
       ]
     },
     "created_date": {
       "type": [
         "null",
         "string"
-      ]
+      ],
+      "format": "date-time"
     },
     "organization": {
       "type": [
