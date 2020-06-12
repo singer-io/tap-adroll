@@ -2,9 +2,8 @@ import os
 import unittest
 
 import tap_tester.connections as connections
-from oauthlib.oauth2 import LegacyApplicationClient
-from requests_oauthlib import OAuth2Session
 
+from test_client import TestClient
 
 class TestAdrollBase(unittest.TestCase):
     REPLICATION_KEYS = "valid-replication-keys"
@@ -39,18 +38,8 @@ class TestAdrollBase(unittest.TestCase):
             'start_date' : '2020-03-01T00:00:00Z'
         }
 
-    @staticmethod
-    def get_credentials():
-        # Get a refresh token with password credentials
-        client_id = os.getenv('TAP_ADROLL_CLIENT_ID')
-        client_secret = os.getenv('TAP_ADROLL_CLIENT_SECRET')
-        username = os.getenv('TAP_ADROLL_USERNAME')
-        password = os.getenv('TAP_ADROLL_PASSWORD')
-
-        oauth = OAuth2Session(client=LegacyApplicationClient(client_id=client_id))
-        token = oauth.fetch_token(token_url='https://services.adroll.com/auth/token',
-                                  username=username, password=password, client_id=client_id,
-                                  client_secret=client_secret)
+    def get_credentials(self):
+        token = TestClient.get_token_information()
         return {
             'refresh_token': token['refresh_token'],
             'client_id': client_id,

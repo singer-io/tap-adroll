@@ -5,6 +5,7 @@ import unittest
 import json
 
 from base import TestAdrollBase
+from test_client import TestClient
 
 class TestAdrollFullReplication(TestAdrollBase):
     def name(self):
@@ -36,6 +37,19 @@ class TestAdrollFullReplication(TestAdrollBase):
             self, conn_id, self.expected_streams(), self.expected_primary_keys())
         return sync_record_count
 
+
+    def setUp(self):
+        client = TestClient()
+        self.advertisable = client.create_advertisable()['results']
+        # Add other creation things beneath here for this advertisable (aka profile)
+        # Does deleting the advertisable cascade down it? or orphans them?
+
+    def tearDown(self):
+        resp = client.delete_advertisable(self.advertisable.get('eid'))
+        if resp.get('results') is not True:
+            raise Exception("WARNING Could not cleanup advertisable. eid: {}".format(self.advertisable.get('eid'))
+
+
     # Expected to fail because no data in adroll
     def test_run(self):
         """
@@ -56,7 +70,7 @@ class TestAdrollFullReplication(TestAdrollBase):
         #verify check  exit codes
         exit_status = menagerie.get_exit_status(conn_id, check_job_name)
         menagerie.verify_check_exit_status(self, exit_status, check_job_name)
-        
+
         # Select all streams and no fields within streams
         found_catalogs = menagerie.get_catalogs(conn_id)
         full_streams = {key for key, value in self.expected_replication_method().items()
