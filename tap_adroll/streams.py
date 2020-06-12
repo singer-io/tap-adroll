@@ -5,19 +5,21 @@ import singer
 
 LOGGER = singer.get_logger()
 
-class Advertisables:
+
+class Stream:
+    def __init__(self, client, config, state):
+        self.client = client
+        self.config = config
+        self.state = state
+
+
+class Advertisables(Stream):
     stream_id = 'advertisables'
     stream_name = 'advertisables'
     endpoint = 'organization/get_advertisables'
     key_properties = ["eid"]
     replication_method = "FULL_TABLE"
     replication_keys = []
-
-
-    def __init__(self, client, config, state):
-        self.client = client
-        self.config = config
-        self.state = state
 
 
     def get_all_advertisable_eids(self):
@@ -32,19 +34,13 @@ class Advertisables:
             yield rec
 
 
-class Ads:
+class Ads(Stream):
     stream_id = 'ads'
     stream_name = 'ads'
     endpoint = 'advertisable/get_ads'
     key_properties = ["eid"]
     replication_method = "FULL_TABLE"
     replication_keys = []
-
-
-    def __init__(self, client, config, state):
-        self.client = client
-        self.config = config
-        self.state = state
 
 
     def sync(self):
@@ -58,19 +54,13 @@ class Ads:
                 yield rec
 
 
-class AdReports:
+class AdReports(Stream):
     stream_id = 'ad_reports'
     stream_name = 'ad_reports'
     endpoint = 'report/ad'
     key_properties = ["eid", "date"]
     replication_method = "INCREMENTAL"
     replication_keys = ["date"]
-
-
-    def __init__(self, client, config, state):
-        self.client = client
-        self.config = config
-        self.state = state
 
 
     def generate_daily_date_windows(self):
@@ -112,7 +102,7 @@ class AdReports:
             singer.write_state(self.state)
 
 
-class Segments:
+class Segments(Stream):
     #advertisable/get_segments
     stream_id = 'segments'
     stream_name = 'segments'
@@ -121,12 +111,6 @@ class Segments:
     # It seems like this endpoint now has pagination and filtering capabilities.
     replication_method = "FULL_TABLE"
     replication_keys = []
-
-
-    def __init__(self, client, config, state):
-        self.client = client
-        self.config = config
-        self.state = state
 
 
     def sync(self):
@@ -139,7 +123,7 @@ class Segments:
             for rec in records.get('results'):
                 yield rec
 
-class Campaigns:
+class Campaigns(Stream):
     stream_id = 'campaigns'
     stream_name = 'campaigns'
     endpoint = 'advertisable/get_campaigns'
@@ -147,12 +131,6 @@ class Campaigns:
     # It seems like this endpoint now has pagination and filtering capabilities.
     replication_method = "FULL_TABLE"
     replication_keys = []
-
-
-    def __init__(self, client, config, state):
-        self.client = client
-        self.config = config
-        self.state = state
 
 
     def sync(self):
@@ -166,7 +144,7 @@ class Campaigns:
                 yield rec
 
 
-class AdGroups:
+class AdGroups(Stream):
     stream_id = 'ad_groups'
     stream_name = 'ad_groups'
     endpoint = 'advertisable/get_adgroups'
@@ -174,12 +152,6 @@ class AdGroups:
     # It seems like this endpoint now has pagination and filtering capabilities.
     replication_method = "FULL_TABLE"
     replication_keys = []
-
-
-    def __init__(self, client, config, state):
-        self.client = client
-        self.config = config
-        self.state = state
 
 
     def sync(self):
