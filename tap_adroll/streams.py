@@ -6,7 +6,7 @@ import singer
 LOGGER = singer.get_logger()
 
 class Advertisables:
-    stream_id = 'Advertisables'
+    stream_id = 'advertisables'
     stream_name = 'advertisables'
     endpoint = 'organization/get_advertisables'
     key_properties = ["eid"]
@@ -33,7 +33,7 @@ class Advertisables:
 
 
 class Ads:
-    stream_id = 'Ads'
+    stream_id = 'ads'
     stream_name = 'ads'
     endpoint = 'advertisable/get_ads'
     key_properties = ["eid"]
@@ -59,7 +59,7 @@ class Ads:
 
 
 class AdReports:
-    stream_id = 'AdReports'
+    stream_id = 'ad_reports'
     stream_name = 'ad_reports'
     endpoint = 'report/ad'
     key_properties = ["eid", "date"]
@@ -114,7 +114,7 @@ class AdReports:
 
 class Segments:
     #advertisable/get_segments
-    stream_id = 'Segments'
+    stream_id = 'segments'
     stream_name = 'segments'
     endpoint = 'advertisable/get_segments'
     key_properties = ["eid"]
@@ -139,7 +139,32 @@ class Segments:
             for rec in records.get('results'):
                 yield rec
 
+class Campaigns:
+    'advertisable/get_campaigns'
+    stream_id = 'campaigns'
+    stream_name = 'campaigns'
+    endpoint = 'advertisable/get_campaigns'
+    key_properties = ["eid"]
+    # It seems like this endpoint now has pagination and filtering capabilities.
+    replication_method = "FULL_TABLE"
+    replication_keys = []
 
+
+    def __init__(self, client, config, state):
+        self.client = client
+        self.config = config
+        self.state = state
+
+
+    def sync(self):
+        # TODO: Can switch on `is_active` by default "True" returning only active campaigns
+        advertisables = Advertisables(self.client, self.config, self.state)
+        for advertisable_eid in advertisables.get_all_advertisable_eids():
+            records = self.client.get(self.endpoint, params={
+                'advertisable': advertisable_eid
+            })
+            for rec in records.get('results'):
+                yield rec
 
 
 STREAM_OBJECTS = {
@@ -147,4 +172,5 @@ STREAM_OBJECTS = {
     'ads': Ads,
     'ad_reports': AdReports,
     'segments': Segments,
+    'campaigns': Campaigns,
 }
