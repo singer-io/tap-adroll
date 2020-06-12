@@ -35,7 +35,8 @@ class AdrollClient():
                                      token_updater=self._write_config)
         try:
             # Make an authenticated request after creating the object to any endpoint
-            self.get('organization/get')
+            org = self.get('organization/get').get('results', {}).get('eid')
+            self.organization_eid = org
         except Exception as e:
             LOGGER.info("Error initializing AdrollClient during token refresh, please reauthenticate.")
             raise AdrollAuthenticationError(e)
@@ -58,7 +59,7 @@ class AdrollClient():
                           (requests.exceptions.HTTPError),
                           max_tries=3,
                           interval=10)
-    def _make_request(self, method, endpoint, headers=None, params=None):
+    def _make_request(self, method, endpoint, headers=None, params=None, data=None):
         full_url = ENDPOINT_BASE + endpoint
         LOGGER.info(
             "%s - Making request to %s endpoint %s, with params %s",
@@ -69,7 +70,7 @@ class AdrollClient():
         )
 
         # TODO: We should merge headers with some default headers like user_agent
-        response = self.session.request(method, full_url, headers=headers, params=params)
+        response = self.session.request(method, full_url, headers=headers, params=params, data=data)
 
         response.raise_for_status()
         # TODO: Check error status, rate limit, etc.
