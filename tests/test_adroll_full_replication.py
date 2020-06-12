@@ -47,7 +47,7 @@ class TestAdrollFullReplication(TestAdrollBase):
     def tearDown(self):
         resp = client.delete_advertisable(self.advertisable.get('eid'))
         if resp.get('results') is not True:
-            raise Exception("WARNING Could not cleanup advertisable. eid: {}".format(self.advertisable.get('eid'))
+            raise Exception("WARNING Could not cleanup advertisable. eid: {}".format(self.advertisable.get('eid')))
 
 
     # Expected to fail because no data in adroll
