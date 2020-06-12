@@ -2,6 +2,9 @@ import os
 import unittest
 
 import tap_tester.connections as connections
+from oauthlib.oauth2 import LegacyApplicationClient
+from requests_oauthlib import OAuth2Session
+
 
 class TestAdrollBase(unittest.TestCase):
     REPLICATION_KEYS = "valid-replication-keys"
@@ -38,11 +41,21 @@ class TestAdrollBase(unittest.TestCase):
 
     @staticmethod
     def get_credentials():
+        # Get a refresh token with password credentials
+        client_id = os.getenv('TAP_ADROLL_CLIENT_ID')
+        client_secret = os.getenv('TAP_ADROLL_CLIENT_SECRET')
+        username = os.getenv('TAP_ADROLL_USERNAME')
+        password = os.getenv('TAP_ADROLL_PASSWORD')
+
+        oauth = OAuth2Session(client=LegacyApplicationClient(client_id=client_id))
+        token = oauth.fetch_token(token_url='https://services.adroll.com/auth/token',
+                                  username=username, password=password, client_id=client_id,
+                                  client_secret=client_secret)
         return {
-            'refresh_token': os.getenv('TAP_ADROLL_REFRESH_TOKEN'),
-            'client_id': os.getenv('TAP_ADROLL_CLIENT_ID'),
-            'client_secret': os.getenv('TAP_ADROLL_CLIENT_SECRET'),
-            'access_token': 'fake'
+            'refresh_token': token['refresh_token'],
+            'client_id': client_id,
+            'client_secret': client_secret,
+            'access_token': token['access_token']
         }
 
     @staticmethod
@@ -50,6 +63,7 @@ class TestAdrollBase(unittest.TestCase):
         return {
             'advertisables',
             'ads',
+            'ad_reports',
         }
 
     def expected_metadata(self):
@@ -63,6 +77,11 @@ class TestAdrollBase(unittest.TestCase):
             "ads": {
                 self.PRIMARY_KEYS: {'eid'},
                 self.REPLICATION_METHOD: self.FULL,
+            },
+            "ad_reports": {
+                self.PRIMARY_KEYS: {'eid', 'date'},
+                self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.REPLICATION_KEYS: {'date'},
             },
         }
 
@@ -84,11 +103,3 @@ class TestAdrollBase(unittest.TestCase):
         return {table: properties.get(self.PRIMARY_KEYS, set())
                 for table, properties
                 in self.expected_metadata().items()}
-
-    @staticmethod
-    def preserve_refresh_token(existing_conns, payload):
-        if not existing_conns:
-            return payload
-        conn_with_creds = connections.fetch_existing_connection_with_creds(existing_conns[0]['id'])
-        payload['properties']['refresh_token'] = conn_with_creds['credentials']['refresh_token']
-        return payload
