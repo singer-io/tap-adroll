@@ -140,7 +140,6 @@ class Segments:
                 yield rec
 
 class Campaigns:
-    'advertisable/get_campaigns'
     stream_id = 'campaigns'
     stream_name = 'campaigns'
     endpoint = 'advertisable/get_campaigns'
@@ -167,9 +166,38 @@ class Campaigns:
                 yield rec
 
 
+class AdGroups:
+    stream_id = 'ad_groups'
+    stream_name = 'ad_groups'
+    endpoint = 'advertisable/get_adgroups'
+    key_properties = ["eid"]
+    # It seems like this endpoint now has pagination and filtering capabilities.
+    replication_method = "FULL_TABLE"
+    replication_keys = []
+
+
+    def __init__(self, client, config, state):
+        self.client = client
+        self.config = config
+        self.state = state
+
+
+    def sync(self):
+        # TODO: Can switch on `camp_active` by default "True" returning only for active campaigns
+        advertisables = Advertisables(self.client, self.config, self.state)
+        for advertisable_eid in advertisables.get_all_advertisable_eids():
+            records = self.client.get(self.endpoint, params={
+                'advertisable': advertisable_eid
+            })
+            for rec in records.get('results'):
+                yield rec
+
+
+
 STREAM_OBJECTS = {
     'advertisables': Advertisables,
     'ads': Ads,
+    'ad_groups': AdGroups,
     'ad_reports': AdReports,
     'segments': Segments,
     'campaigns': Campaigns,
