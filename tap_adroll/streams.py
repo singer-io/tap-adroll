@@ -21,11 +21,17 @@ class Advertisables(Stream):
     replication_method = "FULL_TABLE"
     replication_keys = []
 
+    advertisable_eids = []
 
     def get_all_advertisable_eids(self):
-        records = self.client.get(self.endpoint)
-        for rec in records.get('results'):
-            yield rec['eid']
+        if Advertisables.advertisable_eids:
+            for eid in Advertisables.advertisable_eids:
+                yield eid
+        else:
+            records = self.client.get(self.endpoint)
+            for rec in records.get('results'):
+                Advertisables.advertisable_eids.append(rec['eid'])
+                yield rec['eid']
 
 
     def sync(self):
@@ -163,7 +169,6 @@ class AdGroups(Stream):
             })
             for rec in records.get('results'):
                 yield rec
-
 
 
 STREAM_OBJECTS = {
