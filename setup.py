@@ -19,6 +19,9 @@ setup(name='tap-adroll',
               'pylint',
               'ipdb',
               'nose',
+          ],
+          'test': [
+              'simplejson==3.11.1',
           ]
       },
       entry_points='''

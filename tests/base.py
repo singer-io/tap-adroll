@@ -53,8 +53,8 @@ class TestAdrollBase(unittest.TestCase):
         token = TestClient.get_token_information()
         return {
             'refresh_token': token['refresh_token'],
-            'client_id': client_id,
-            'client_secret': client_secret,
+            'client_id': token['client_id'],
+            'client_secret': token['client_secret'],
             'access_token': token['access_token']
         }
 
@@ -63,7 +63,10 @@ class TestAdrollBase(unittest.TestCase):
         return {
             'advertisables',
             'ads',
+            'ad_groups',
             'ad_reports',
+            'campaigns',
+            'segments',
         }
 
     def expected_metadata(self):
@@ -78,10 +81,22 @@ class TestAdrollBase(unittest.TestCase):
                 self.PRIMARY_KEYS: {'eid'},
                 self.REPLICATION_METHOD: self.FULL,
             },
+            "ad_groups": {
+                self.PRIMARY_KEYS: {'eid'},
+                self.REPLICATION_METHOD: self.FULL,
+            },
             "ad_reports": {
                 self.PRIMARY_KEYS: {'eid', 'date'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.REPLICATION_KEYS: {'date'},
+            },
+            "campaigns": {
+                self.PRIMARY_KEYS: {'eid'},
+                self.REPLICATION_METHOD: self.FULL,
+            },
+            "segments": {
+                self.PRIMARY_KEYS: {'eid'},
+                self.REPLICATION_METHOD: self.FULL,
             },
         }
 
