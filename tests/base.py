@@ -17,9 +17,10 @@ class TestAdrollBase(unittest.TestCase):
 
     def setUp(self):
         missing_envs = [x for x in [
-            "TAP_ADROLL_REFRESH_TOKEN",
             "TAP_ADROLL_CLIENT_ID",
             "TAP_ADROLL_CLIENT_SECRET",
+            "TAP_ADROLL_USERNAME",
+            "TAP_ADROLL_PASSWORD"
         ] if os.getenv(x) is None]
         if missing_envs:
             raise Exception("Missing environment variables: {}".format(missing_envs))
