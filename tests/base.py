@@ -6,6 +6,8 @@ from datetime import timedelta
 import tap_tester.menagerie   as menagerie
 import tap_tester.connections as connections
 
+from test_client import TestClient
+
 class TestAdrollBase(unittest.TestCase):
     REPLICATION_KEYS = "valid-replication-keys"
     PRIMARY_KEYS = "table-key-properties"
@@ -47,13 +49,13 @@ class TestAdrollBase(unittest.TestCase):
         return_value["start_date"] = self.START_DATE
         return return_value
 
-    @staticmethod
-    def get_credentials():
+    def get_credentials(self):
+        token = TestClient.get_token_information()
         return {
-            'refresh_token': os.getenv('TAP_ADROLL_REFRESH_TOKEN'),
-            'client_id': os.getenv('TAP_ADROLL_CLIENT_ID'),
-            'client_secret': os.getenv('TAP_ADROLL_CLIENT_SECRET'),
-            'access_token': 'fake'
+            'refresh_token': token['refresh_token'],
+            'client_id': client_id,
+            'client_secret': client_secret,
+            'access_token': token['access_token']
         }
 
     @staticmethod
@@ -61,6 +63,7 @@ class TestAdrollBase(unittest.TestCase):
         return {
             'advertisables',
             'ads',
+            'ad_reports',
         }
 
     def expected_metadata(self):
@@ -74,6 +77,11 @@ class TestAdrollBase(unittest.TestCase):
             "ads": {
                 self.PRIMARY_KEYS: {'eid'},
                 self.REPLICATION_METHOD: self.FULL,
+            },
+            "ad_reports": {
+                self.PRIMARY_KEYS: {'eid', 'date'},
+                self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.REPLICATION_KEYS: {'date'},
             },
         }
 
@@ -96,13 +104,13 @@ class TestAdrollBase(unittest.TestCase):
                 for table, properties
                 in self.expected_metadata().items()}
 
-    @staticmethod
-    def preserve_refresh_token(existing_conns, payload):
-        if not existing_conns:
-            return payload
-        conn_with_creds = connections.fetch_existing_connection_with_creds(existing_conns[0]['id'])
-        payload['properties']['refresh_token'] = conn_with_creds['credentials']['refresh_token']
-        return payload
+    # @staticmethod
+    # def preserve_refresh_token(existing_conns, payload):
+    #     if not existing_conns:
+    #         return payload
+    #     conn_with_creds = connections.fetch_existing_connection_with_creds(existing_conns[0]['id'])
+    #     payload['properties']['refresh_token'] = conn_with_creds['credentials']['refresh_token']
+    #     return payload
 
     @staticmethod
     def select_all_streams_and_fields(conn_id, catalogs, select_all_fields: bool = True):
@@ -125,3 +133,4 @@ class TestAdrollBase(unittest.TestCase):
                 conn_id, catalog, schema, additional_md=additional_md,
                 non_selected_fields=non_selected_properties.keys()
             )
+
