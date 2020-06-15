@@ -13,8 +13,8 @@ class TestClient(AdrollClient):
         config = {
             'access_token': token['access_token'],
             'refresh_token': token['refresh_token'],
-            'client_id': os.getenv('TAP_ADROLL_CLIENT_ID'),
-            'client_secret': os.getenv('TAP_ADROLL_CLIENT_SECRET')
+            'client_id': token['client_id'],
+            'client_secret': token['client_secret'],
         }
         super().__init__('/dev/null', config)
 
@@ -32,9 +32,11 @@ class TestClient(AdrollClient):
         password = os.getenv('TAP_ADROLL_PASSWORD')
 
         oauth = OAuth2Session(client=LegacyApplicationClient(client_id=client_id))
-        return oauth.fetch_token(token_url='https://services.adroll.com/auth/token',
-                                 username=username, password=password, client_id=client_id,
-                                 client_secret=client_secret)
+        return {"client_id": client_id,
+                "client_secret": client_secret,
+                **oauth.fetch_token(token_url='https://services.adroll.com/auth/token',
+                                    username=username, password=password, client_id=client_id,
+                                    client_secret=client_secret)}
 
 
     def create_advertisable(self):
