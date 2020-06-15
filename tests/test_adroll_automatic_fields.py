@@ -24,7 +24,7 @@ class TestAdrollAutomaticFields(TestAdrollBase):
 
     def testable_streams(self):
         return set(self.expected_streams()).difference(
-            {'ad_reports'} # STREAMS THAT CANNOT CURRENTLY BE TESTED
+            {'ad_reports', 'ad_groups', 'campaigns', 'segments'} # STREAMS THAT CANNOT CURRENTLY BE TESTED
         )
 
     def expected_automatic_fields(self):

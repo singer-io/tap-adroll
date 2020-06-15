@@ -39,6 +39,15 @@ class TestClient(AdrollClient):
                                     client_secret=client_secret)}
 
 
+    def get_all_advertisables(self):
+        return self.get('organization/get_advertisables').get('results')
+
+    def get_all_ads(self, advertisables):
+        ads = []
+        for adv in advertisables:
+            ads += self.get('advertisable/get_ads', params={'advertisable': adv}).get('results')
+        return ads
+
     def get_advertisables(self):
         response = self.get('advertisable/get')
         return response.get('results', response)
@@ -92,15 +101,6 @@ class TestClient(AdrollClient):
     #     resp = self.post('adgroup/create', data=data)
     #     return resp
 
-
-    def get_all_advertisables(self):
-        return self.get('organization/get_advertisables').get('results')
-
-    def get_all_ads(self, advertisables):
-        ads = []
-        for adv in advertisables:
-            ads += self.get('advertisable/get_ads', params={'advertisable': adv}).get('results')
-        return ads
 
     def get(self, url, headers=None, params=None, data=None):
         return self._make_request("GET", url, headers=headers, params=params)
