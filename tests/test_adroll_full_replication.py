@@ -2,7 +2,7 @@ import tap_tester.connections as connections
 import tap_tester.menagerie   as menagerie
 import tap_tester.runner      as runner
 import unittest
-import json
+import simplejson
 
 from base import TestAdrollBase
 from test_client import TestClient
@@ -39,15 +39,21 @@ class TestAdrollFullReplication(TestAdrollBase):
 
 
     def setUp(self):
-        client = TestClient()
-        self.advertisable = client.create_advertisable()['results']
-        # Add other creation things beneath here for this advertisable (aka profile)
-        # Does deleting the advertisable cascade down it? or orphans them?
+        # self.client = TestClient()
+        # self.advertisable = self.client.create_advertisable()['results']
+        # # Add other creation things beneath here for this advertisable (aka profile)
+        # # Does deleting the advertisable cascade down it? or orphans them?
+        # resp1 = self.client.create_campaign(self.advertisable.get('eid'))
+        # resp2 = self.client.create_ad_group(resp1.get('results', {}).get('eid'))
+        # import ipdb; ipdb.set_trace()
+        # 1+1
+        pass
 
     def tearDown(self):
-        resp = client.delete_advertisable(self.advertisable.get('eid'))
-        if resp.get('results') is not True:
-            raise Exception("WARNING Could not cleanup advertisable. eid: {}".format(self.advertisable.get('eid')))
+        # resp = self.client.delete_advertisable(self.advertisable.get('eid'))
+        # if resp.get('results') is not True:
+        #     raise Exception("WARNING Could not cleanup advertisable. eid: {}".format(self.advertisable.get('eid')))
+        pass
 
 
     # Expected to fail because no data in adroll
@@ -129,10 +135,10 @@ class TestAdrollFullReplication(TestAdrollBase):
 
                 same_records = 0
                 for first_record in first_data:
-                    first_value = json.dumps(first_record, sort_keys=True)
+                    first_value = simplejson.dumps(first_record, sort_keys=True, use_decimal=True)
 
                     for compare_record in second_data:
-                        compare_value = json.dumps(compare_record, sort_keys=True)
+                        compare_value = simplejson.dumps(compare_record, sort_keys=True, use_decimal=True)
 
                         if first_value == compare_value:
                             second_data.remove(compare_record)
