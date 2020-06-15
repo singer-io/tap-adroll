@@ -119,16 +119,18 @@ class TestAdrollBase(unittest.TestCase):
                 for table, properties
                 in self.expected_metadata().items()}
 
-    # @staticmethod
-    # def preserve_refresh_token(existing_conns, payload):
-    #     if not existing_conns:
-    #         return payload
-    #     conn_with_creds = connections.fetch_existing_connection_with_creds(existing_conns[0]['id'])
-    #     payload['properties']['refresh_token'] = conn_with_creds['credentials']['refresh_token']
-    #     return payload
+    def expected_foreign_keys(self):
+        """
+        return dictionary with key of table name and
+        value is set of foreign keys
+        """
+        return {  # TODO add foreign keys if found
+            "advertiseables": set(),
+            "ads": set(),
+            "advertiseables": set()
+        }
 
-    @staticmethod
-    def select_all_streams_and_fields(conn_id, catalogs, select_all_fields: bool = True):
+    def select_all_streams_and_fields(self, conn_id, catalogs, select_all_fields: bool = True):
         """Select all streams and all fields within streams"""
         for catalog in catalogs:
             schema = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])
