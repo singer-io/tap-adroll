@@ -35,7 +35,9 @@ class TestAdrollBase(unittest.TestCase):
     @staticmethod
     def get_properties():
         return {
-            'start_date' : '2020-03-01T00:00:00Z'
+            # Start date for ad_reports dating back to 2016
+            'start_date' : '2016-06-03T00:00:00Z',
+            'end_date' : '2016-06-06T00:00:00Z'
         }
 
     def get_credentials(self):
