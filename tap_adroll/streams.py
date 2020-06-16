@@ -73,7 +73,14 @@ class AdReports(Stream):
         bookmark = singer.bookmarks.get_bookmark(self.state, self.stream_name, self.replication_keys[0])
         start = utils.strptime_to_utc(bookmark or self.config['start_date'])
         window_size = datetime.timedelta(days=1)
-        now = utils.now() + datetime.timedelta(days=1) # Go until tomorrow for day-windows
+
+        # Configurable end_date used for testing
+        if self.config.get('end_date'):
+            now = utils.strptime_to_utc(self.config.get('end_date'))
+        else:
+            now = utils.now()
+        now += datetime.timedelta(days=1) # Go until tomorrow for day-windows
+
         while start < now:
             end = start + window_size
             if end > now:

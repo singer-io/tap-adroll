@@ -7,9 +7,9 @@ import simplejson
 from base import TestAdrollBase
 from test_client import TestClient
 
-class TestAdrollFullReplication(TestAdrollBase):
+class TestAdrollIncrementalReplication(TestAdrollBase):
     def name(self):
-        return "tap_tester_adroll_full_replication"
+        return "tap_tester_adroll_incremental_replication"
 
     @staticmethod
     def select_all_streams_and_fields(conn_id, catalogs):
@@ -39,32 +39,23 @@ class TestAdrollFullReplication(TestAdrollBase):
 
 
     def setUp(self):
-        # self.client = TestClient()
-        # self.advertisable = self.client.create_advertisable()['results']
-        # # Add other creation things beneath here for this advertisable (aka profile)
-        # # Does deleting the advertisable cascade down it? or orphans them?
-        # resp1 = self.client.create_campaign(self.advertisable.get('eid'))
-        # resp2 = self.client.create_ad_group(resp1.get('results', {}).get('eid'))
-        # import ipdb; ipdb.set_trace()
-        # 1+1
         pass
 
     def tearDown(self):
-        # resp = self.client.delete_advertisable(self.advertisable.get('eid'))
-        # if resp.get('results') is not True:
-        #     raise Exception("WARNING Could not cleanup advertisable. eid: {}".format(self.advertisable.get('eid')))
         pass
 
 
     def test_run(self):
         """
-        Verify that a bookmark doesn't exist for the stream
-        Verify that the second sync includes the same number or more records than the first sync
-        Verify that all records in the first sync are included in the second sync
-        Verify that the sync only sent records to the target for selected streams (catalogs)
+        Verify for each stream that you can do a sync which records bookmarks.
+        Verify that the bookmark is the max value sent to the target for the `date` PK field
+        Verify that the 2nd sync respects the bookmark
+        Verify that all data of the 2nd sync is >= the bookmark from the first sync
+        Verify that the number of records in the 2nd sync is less then the first
+        Verify inclusivivity of bookmarks
 
         PREREQUISITE
-        For EACH stream that is fully replicated there are multiple rows of data with
+        For EACH stream that is incrementally replicated there are multiple rows of data with
             different values for the replication key
         """
         conn_id = connections.ensure_connection(self)
@@ -78,24 +69,31 @@ class TestAdrollFullReplication(TestAdrollBase):
 
         # Select all streams and no fields within streams
         found_catalogs = menagerie.get_catalogs(conn_id)
-        full_streams = {key for key, value in self.expected_replication_method().items()
-                        if value == self.FULL}
+        incremental_streams = {key for key, value in self.expected_replication_method().items()
+                               if value == self.INCREMENTAL}
         our_catalogs = [catalog for catalog in found_catalogs if
-                        catalog.get('tap_stream_id') in full_streams]
+                        catalog.get('tap_stream_id') in incremental_streams]
         self.select_all_streams_and_fields(conn_id, our_catalogs)
 
         # Run a sync job using orchestrator
         first_sync_record_count = self.run_sync(conn_id)
 
         # verify that the sync only sent records to the target for selected streams (catalogs)
-        self.assertEqual(set(first_sync_record_count.keys()), full_streams,
-                         msg="Expect first_sync_record_count keys {} to equal full_streams {},"
+        self.assertEqual(set(first_sync_record_count.keys()), incremental_streams,
+                         msg="Expect first_sync_record_count keys {} to equal incremental_streams {},"
                          " first_sync_record_count was {}".format(
                              first_sync_record_count.keys(),
-                             full_streams,
+                             incremental_streams,
                              first_sync_record_count))
 
         first_sync_state = menagerie.get_state(conn_id)
+
+        # Verify the state against the end_date
+        for stream in incremental_streams:
+            replication_key = next(iter(self.expected_metadata().get(stream).get(self.REPLICATION_KEYS)))
+            d1 = first_sync_state.get('bookmarks').get(stream).get(replication_key)
+            d2 = self.get_properties().get('end_date')
+            self.assertEqual(d1.split('T')[0], d2.split('T')[0])
 
         # Get the set of records from a first sync
         first_sync_records = runner.get_records_from_target_output()
@@ -106,43 +104,35 @@ class TestAdrollFullReplication(TestAdrollBase):
         # Get the set of records from a second sync
         second_sync_records = runner.get_records_from_target_output()
 
+        second_sync_state = menagerie.get_state(conn_id)
+        
         # Loop first_sync_records and compare against second_sync_records
         # each iteration of loop is chekcing both for a stream
         # first_sync_records["ads"] == second["ads"]
-        for stream in full_streams:
+        for stream in incremental_streams:
             with self.subTest(stream=stream):
 
-                # verify there is no bookmark values from state
-                state_value = first_sync_state.get("bookmarks", {}).get(stream)
-                self.assertIsNone(state_value)
+                # verify both syncs write / keep the same bookdmark
+                self.assertEqual(first_sync_state, second_sync_state)
 
                 # verify that there is more than 1 record of data - setup necessary
                 self.assertGreater(first_sync_record_count.get(stream, 0), 1,
                                    msg="Data isn't set up to be able to test full sync")
 
-                # verify that you get the same or more data the 2nd time around
+                # verify that you get less data on the 2nd sync
                 self.assertGreaterEqual(
-                    second_sync_record_count.get(stream, 0),
                     first_sync_record_count.get(stream, 0),
-                    msg="second syc didn't have more records, full sync not verified")
+                    second_sync_record_count.get(stream, 0),
+                    msg="first syc didn't have more records, bookmark usage not verified")
 
-                # verify all data from 1st sync included in 2nd sync
-                first_data = [record["data"] for record
-                              in first_sync_records.get(stream, {}).get("messages", {"data": {}})]
-                second_data = [record["data"] for record
+                # Verify that all data of the 2nd sync is >= the bookmark from the first sync
+                second_data = [record["data"]["date"] for record
                                in second_sync_records.get(stream, {}).get("messages", {"data": {}})]
 
-                same_records = 0
-                for first_record in first_data:
-                    first_value = simplejson.dumps(first_record, sort_keys=True, use_decimal=True)
-
-                    for compare_record in second_data:
-                        compare_value = simplejson.dumps(compare_record, sort_keys=True, use_decimal=True)
-
-                        if first_value == compare_value:
-                            second_data.remove(compare_record)
-                            same_records += 1
-                            break
-
-                self.assertEqual(len(first_data), same_records,
-                                 msg="Not all data from the first sync was in the second sync")
+                replication_key = next(iter(self.expected_metadata().get(stream).get(self.REPLICATION_KEYS)))
+                first_sync_bookmark = first_sync_state.get('bookmarks').get(stream).get(replication_key).split('T')[0]
+                for date_value in second_data:
+                    
+                    self.assertEqual(first_sync_bookmark,
+                                     date_value.split('T')[0],
+                                     msg="First sync bookmark does not equal 2nd sync record's replication-key")
