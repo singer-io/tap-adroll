@@ -24,7 +24,7 @@ class TestAdrollAutomaticFields(TestAdrollBase):
 
     def testable_streams(self):
         return set(self.expected_streams()).difference(
-            {'ad_reports', 'ad_groups', 'campaigns', 'segments'} # STREAMS THAT CANNOT CURRENTLY BE TESTED
+            {'ad_reports',} # STREAMS THAT CANNOT CURRENTLY BE TESTED
         )
 
     def expected_automatic_fields(self):
@@ -33,10 +33,9 @@ class TestAdrollAutomaticFields(TestAdrollBase):
 
         return {stream: fks.get(stream, set()) | pks.get(stream, set())
                 for stream in self.expected_streams()}
-
     @classmethod
     def setUpClass(cls):
-        print("\n\nTEST SETUP\n\n")
+        print("\n\nTEST SETUP\n")
         cls.client = TestClient()
         # cls.advertisable = cls.client.create_advertisable()['results']
 
@@ -56,37 +55,23 @@ class TestAdrollAutomaticFields(TestAdrollBase):
 
         print("\n\nRUNNING {}\n\n".format(self.name()))
 
-        # ensure data exists for sync streams and set expectations
-        expected_records = {x: [] for x in self.expected_streams()} # ids by stream
-        # ensure advertisables
-        existing_advertisables = self.client.get_all_advertisables()
-        if existing_advertisables:
-            print("Data exists for stream: advertisables")
-            for obj in existing_advertisables:
-                expected_records['advertisables'].append(
-                    {field: obj.get(field)
-                     for field in self.expected_automatic_fields().get('advertisables')}
-                )
-        else:
-            print("Data does not exist for stream: advertisables")
-            assert None, "more test functinality needed"
+        # TODO ensure multiple pages of data exist
 
-        # ensure ads
-        advertisables = []
-        for adv in existing_advertisables:
-            advertisables.append(adv.get('eid'))
-        existing_ads = self.client.get_all_ads(advertisables)
-        if existing_ads:
-            print("Data exists for stream: ads")
-            for obj in existing_ads:
-                expected_records['ads'].append(
-                    {field: obj.get(field)
-                     for field in self.expected_automatic_fields().get('ads')}
-                )
-        else:
-            print("Data does not exist for stream: ads")
-            assert None, "more test functinality needed"
-        
+        # # ensure data exists for sync streams and set expectations
+        expected_records = {x: [] for x in self.expected_streams()} # ids by stream
+        for stream in self.testable_streams():
+            existing_objects = self.client.get_all(stream)
+            if existing_objects:
+                print("Data exists for stream: {}".format(stream))
+                for obj in existing_objects:
+                    expected_records[stream].append(
+                        {field: obj.get(field)
+                         for field in self.expected_automatic_fields().get(stream)}
+                    )
+            else:
+               print("Data does not exist for stream: {}".format(stream))
+               assert None, "more test functinality needed"
+
         conn_id = connections.ensure_connection(self)
 
         # run in check mode

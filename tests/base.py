@@ -37,7 +37,7 @@ class TestAdrollBase(unittest.TestCase):
 
     def get_properties(self, original: bool = True):
         return_value = {
-            'start_date' : dt.strftime(dt.utcnow(), self.START_DATE_FORMAT),  # set to utc today
+            'start_date' : dt.strftime(dt.utcnow() - timedelta(days=2), self.START_DATE_FORMAT),  # set to utc today
         }
         if original:
             return return_value
