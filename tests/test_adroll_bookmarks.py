@@ -8,6 +8,11 @@ from base import TestAdrollBase
 from test_client import TestClient
 
 class TestAdrollIncrementalReplication(TestAdrollBase):
+    START_DATE = ""
+    END_DATE = ""
+    START_DATE_FORMAT = "%Y-%m-%dT00:00:00Z"
+
+
     def name(self):
         return "tap_tester_adroll_incremental_replication"
 
@@ -58,7 +63,13 @@ class TestAdrollIncrementalReplication(TestAdrollBase):
         For EACH stream that is incrementally replicated there are multiple rows of data with
             different values for the replication key
         """
-        conn_id = connections.ensure_connection(self)
+        # Overriding start/end dates
+        start_override = '2016-06-02T00:00:00Z'
+        end_override = '2016-06-06T00:00:00Z'
+        self.START_DATE, self.END_DATE = start_override, end_override
+
+        # Instantiate connection with non-default start/end dates
+        conn_id = connections.ensure_connection(self, original_properties=False)
 
         #run in check mode
         check_job_name = runner.run_check_mode(self, conn_id)
@@ -92,7 +103,7 @@ class TestAdrollIncrementalReplication(TestAdrollBase):
         for stream in incremental_streams:
             replication_key = next(iter(self.expected_metadata().get(stream).get(self.REPLICATION_KEYS)))
             d1 = first_sync_state.get('bookmarks').get(stream).get(replication_key)
-            d2 = self.get_properties().get('end_date')
+            d2 = self.END_DATE
             self.assertEqual(d1.split('T')[0], d2.split('T')[0])
 
         # Get the set of records from a first sync
