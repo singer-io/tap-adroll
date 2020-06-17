@@ -1,5 +1,6 @@
 import os
 import unittest
+
 from functools import reduce
 
 from singer import metadata
