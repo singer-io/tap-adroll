@@ -39,6 +39,71 @@ class TestClient(AdrollClient):
                                     client_secret=client_secret)}
 
 
+    def get_all(self, stream, start_date=None):
+        """dispatch function for geting all test data for a given stream"""
+        if stream == 'advertisables':
+            return self.get_all_advertisables()
+        elif stream == 'ads':
+            return self.get_all_ads()
+        elif stream == 'ad_reports':
+            return self.get_all_ad_reports(start_date)
+        elif stream == 'campaigns':
+            return self.get_all_campaigns()
+        elif stream == 'segments':
+            return self.get_all_segments()
+        elif stream == 'ad_groups':
+            return self.get_all_ad_groups()
+        else:
+            raise NotImplementedError
+        
+    def get_all_advertisables(self):
+        return self.get('organization/get_advertisables').get('results')
+
+    def get_all_ads(self):
+        adv_ids = []
+        ads = []
+        advertisables = self.get_all_advertisables()
+        adv_ids = [adv.get('eid') for adv in advertisables]
+        for adv in adv_ids:
+            query_params = {'advertisable': adv}
+            ads += self.get('advertisable/get_ads', params=query_params).get('results')
+        return ads
+
+    def get_all_ad_reports(self, start_date):
+        query_params = {'data_format':'entity',
+                        'start_date':start_date}
+        return self.get('/report/ad', params=query_params).get('results')
+
+    def get_all_campaigns(self):
+        adv_ids = []
+        campaigns = []
+        advertisables = self.get_all_advertisables()
+        adv_ids = [adv.get('eid') for adv in advertisables]
+        for adv in adv_ids:
+            query_params = {'advertisable': adv}
+            campaigns += self.get('advertisable/get_campaigns', params=query_params).get('results')
+        return campaigns
+
+    def get_all_ad_groups(self):
+        cam_ids = []
+        groups = []
+        campaigns = self.get_all_campaigns()
+        cam_ids = [cam.get('eid') for cam in campaigns]
+        for cam in cam_ids:
+            query_params = {'campaign': cam}
+            groups += self.get('campaign/get_adgroups', params=query_params).get('results')
+        return groups
+
+    def get_all_segments(self):
+        adv_ids = []
+        segments = []
+        advertisables = self.get_all_advertisables()
+        adv_ids = [adv.get('eid') for adv in advertisables]
+        for adv in adv_ids:
+            query_params = {'advertisable': adv}
+            segments += self.get('advertisable/get_segments', params=query_params).get('results')
+        return segments
+
     def get_advertisables(self):
         response = self.get('advertisable/get')
         return response.get('results', response)
@@ -91,6 +156,10 @@ class TestClient(AdrollClient):
     #     data = {'campaign': campaign_eid, 'name': 'test adgroup'}
     #     resp = self.post('adgroup/create', data=data)
     #     return resp
+
+
+    def get(self, url, headers=None, params=None, data=None):
+        return self._make_request("GET", url, headers=headers, params=params)
 
 
     def post(self, url, headers=None, params=None, data=None):
