@@ -16,6 +16,7 @@ from test_client import TestClient
 class TestAdrollAutomaticFields(TestAdrollBase):
     """Test that with no fields selected for a stream automatic fields are still replicated"""
     START_DATE = ""
+    END_DATE = ""
     START_DATE_FORMAT = "%Y-%m-%dT00:00:00Z"
 
     def name(self):
@@ -57,7 +58,7 @@ class TestAdrollAutomaticFields(TestAdrollBase):
 
         # TODO ensure multiple pages of data exist
 
-        # # ensure data exists for sync streams and set expectations
+        # ensure data exists for sync streams and set expectations
         expected_records = {x: [] for x in self.expected_streams()} # ids by stream
         for stream in self.testable_streams():
             existing_objects = self.client.get_all(stream)
@@ -72,7 +73,13 @@ class TestAdrollAutomaticFields(TestAdrollBase):
                print("Data does not exist for stream: {}".format(stream))
                assert None, "more test functinality needed"
 
-        conn_id = connections.ensure_connection(self)
+        # Overriding start/end dates
+        start_override =  dt.strftime(dt.utcnow()-timedelta(days=3), self.START_DATE_FORMAT)
+        end_override = dt.strftime(dt.utcnow(), self.START_DATE_FORMAT)
+        self.START_DATE, self.END_DATE = start_override, end_override
+
+        # Instantiate connection with non-default start/end dates
+        conn_id = connections.ensure_connection(self, original_properties=False)
 
         # run in check mode
         check_job_name = runner.run_check_mode(self, conn_id)
@@ -113,6 +120,7 @@ class TestAdrollAutomaticFields(TestAdrollBase):
             selected = catalog_entry.get('annotated-schema').get('selected')
             print("Validating selection on {}: {}".format(cat['stream_name'], selected))
             self.assertTrue(selected, msg="Stream not selected by default")
+            # TODO check selection for fields
 
         #clear state
         menagerie.set_state(conn_id, {})

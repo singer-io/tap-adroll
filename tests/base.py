@@ -8,6 +8,7 @@ import tap_tester.connections as connections
 
 from test_client import TestClient
 
+
 class TestAdrollBase(unittest.TestCase):
     REPLICATION_KEYS = "valid-replication-keys"
     PRIMARY_KEYS = "table-key-properties"
@@ -36,24 +37,22 @@ class TestAdrollBase(unittest.TestCase):
     def tap_name():
         return "tap-adroll"
 
-    # @staticmethod
-    # def get_properties():
-    #     return {
-    #         # Start date for ad_reports dating back to 2016
-    #         'start_date' : '2016-06-03T00:00:00Z',
-    #         'end_date' : '2016-06-06T00:00:00Z'
     def get_properties(self, original: bool = True):
         return_value = {
-            'start_date' : dt.strftime(dt.utcnow() - timedelta(days=2), self.START_DATE_FORMAT),  # set to utc today
+            # Start date for ad_reports dating back to 2016
+            'start_date' : '2016-06-02T00:00:00Z',
+            'end_date' : '2016-06-06T00:00:00Z'
         }
         if original:
             return return_value
 
-        # Start Date test needs the new connections start date to be prior to the default
-        assert self.START_DATE < return_value["start_date"]
+        # Start Date test needs the new connections start date to be after the default
+        assert self.START_DATE > return_value["start_date"]
+        assert self.END_DATE > return_value["end_date"]
 
-        # Assign start date to be the default
+        # Reassign start and end dates
         return_value["start_date"] = self.START_DATE
+        return_value["end_date"] = self.END_DATE
         return return_value
 
     def get_credentials(self):
@@ -118,6 +117,7 @@ class TestAdrollBase(unittest.TestCase):
         return set(self.expected_metadata().keys())
 
     def expected_primary_keys(self):
+
         """
         return a dictionary with key of table name
         and value as a set of primary key fields
@@ -151,10 +151,10 @@ class TestAdrollBase(unittest.TestCase):
                 for prop in self.expected_automatic_fields().get(catalog['stream_name'], []):
                     if prop in non_selected_properties:
                         del non_selected_properties[prop]
+                non_selected_properties = non_selected_properties.keys()
             additional_md = []
 
             connections.select_catalog_and_fields_via_metadata(
                 conn_id, catalog, schema, additional_md=additional_md,
-                non_selected_fields=non_selected_properties.keys()
+                non_selected_fields=non_selected_properties
             )
-
