@@ -113,12 +113,19 @@ class TestAdrollBase(unittest.TestCase):
                 for table, properties
                 in self.expected_metadata().items()}
 
+    def expected_incremental_streams(self):
+        return set(stream for stream, rep_meth in self.expected_replication_method().items()
+                   if rep_meth == self.INCREMENTAL)
+
+    def expected_full_table_streams(self):
+        return set(stream for stream, rep_meth in self.expected_replication_method().items()
+                   if rep_meth == self.FULL)
+
     def expected_streams(self):
         """A set of expected stream names"""
         return set(self.expected_metadata().keys())
 
     def expected_primary_keys(self):
-
         """
         return a dictionary with key of table name
         and value as a set of primary key fields
@@ -138,11 +145,13 @@ class TestAdrollBase(unittest.TestCase):
             "advertiseables": set()
         }
 
-    def select_all_streams_and_fields(self, conn_id, catalogs, select_all_fields: bool = True):
+    def select_all_streams_and_fields(self, conn_id, catalogs, select_all_fields: bool = True, exclude_streams=[]):
         """Select all streams and all fields within streams"""
         for catalog in catalogs:
+            if exclude_streams:
+                if catalog.get('stream_name') in exclude_streams:
+                    continue
             schema = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])
-
             non_selected_properties = []
             if not select_all_fields:
                 # get a list of all properties so that none are selected

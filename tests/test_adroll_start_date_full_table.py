@@ -12,20 +12,18 @@ from base import TestAdrollBase
 from test_client import TestClient
 
 
-class TestAdrollStartDate(TestAdrollBase):
+class TestAdrollStartDateFullTable(TestAdrollBase):
     START_DATE = ""
     END_DATE = ""
     MIDNIGHT_FORMAT = "%Y-%m-%dT00:00:00Z"
     
     def name(self):
-        return "tap_tester_adroll_start_date"
+        return "tap_tester_adroll_start_date_full_table"
 
     def testable_streams(self):
-        return set(self.expected_streams()).difference(
-            { # STREAMS THAT CANNOT CURRENTLY BE TESTED
-                'advertisables', 'ad_reports', 'ads', 'segments',
-            }
-        )
+        return self.expected_full_table_streams().difference({ # STREAMS THAT CANNOT CURRENTLY BE TESTED
+                'advertisables', 'segments'
+        })
 
     @classmethod
     def setUpClass(cls):
@@ -182,7 +180,7 @@ class TestAdrollStartDate(TestAdrollBase):
         record_count_by_stream_2 = runner.examine_target_output_file(self, conn_id,
                                                                      self.expected_streams(), self.expected_primary_keys())
         replicated_row_count_2 =  reduce(lambda accum,c : accum + c, record_count_by_stream_2.values(), 0)
-        # self.assertGreater(replicated_row_count_2, 0, msg="failed to replicate any data") # TODO PUT BACK
+        self.assertGreater(replicated_row_count_2, 0, msg="failed to replicate any data")
         print("total replicated row count: {}".format(replicated_row_count_2))
 
         synced_records_2 = runner.get_records_from_target_output()
@@ -195,28 +193,8 @@ class TestAdrollStartDate(TestAdrollBase):
                 record_count_1 = record_count_by_stream_1.get(stream, 0)
                 record_count_2 = record_count_by_stream_2.get(stream, 0)
 
-                # Testing how INCREMENTAL streams handle start date
-                if replication_type == self.INCREMENTAL:
-                    print("skipping incremental stream: {}".format(stream))
-                    # TODO Verify 1st sync (start date=today-N days) record count > 2nd sync (start_date=today) record count.
-
-                    # Verify that each stream has less records in 2nd sync than the 1st.
-                    self.assertLess(record_count_2, record_count_1,
-                                    msg="\nStream '{}' is {}\n".format(stream, self.INCREMENTAL) +
-                                     "Record count 2 should be less than 2, but is not\n" +
-                                     "Sync 1 start_date: {} ".format(start_date_1) +
-                                     "Sync 1 record_count: {}\n".format(record_count_1) +
-                                     "Sync 2 start_date: {} ".format(start_date_2) +
-                                     "Sync 2 record_count: {}".format(record_count_2))
-
-                    # TODO Verify all data from later start data has bookmark values >= start_date 2.
-                    records_from_sync_1 = set(row.get('data').get()
-                                              for row in synced_records_1.get(stream, []).get('messages', []))
-
-                    # TODO Verify min bookmark sent to the target for 2nd sync >= start date 2.
-
                 # Testing how FULL TABLE streams handle start date
-                elif replication_type == self.FULL:
+                if replication_type == self.FULL:
 
                     # Verify that a bookmark doesn't exist for the stream.
                     self.assertTrue(state_1.get(stream) is None,

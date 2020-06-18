@@ -46,14 +46,16 @@ class TestClient(AdrollClient):
                                     client_secret=client_secret)}
 
 
-    def get_all(self, stream, start_date=None):
+    def get_all(self, stream, start_date=None, end_date=None):
         """dispatch function for geting all test data for a given stream"""
         if stream == 'advertisables':
             return self.get_all_advertisables()
         elif stream == 'ads':
             return self.get_all_ads()
         elif stream == 'ad_reports':
-            return self.get_all_ad_reports(start_date)
+            if not start_date or not end_date:
+                raise Exception("You must specify start and end date params.")
+            return self.get_all_ad_reports(start_date, end_date)
         elif stream == 'campaigns':
             return self.get_all_campaigns()
         elif stream == 'segments':
@@ -76,9 +78,10 @@ class TestClient(AdrollClient):
             ads += self.get('advertisable/get_ads', params=query_params).get('results')
         return ads
 
-    def get_all_ad_reports(self, start_date):
+    def get_all_ad_reports(self, start_date, end_date):
         query_params = {'data_format':'entity',
-                        'start_date':start_date}
+                        'start_date':start_date,
+                        'end_date':end_date}
         return self.get('/report/ad', params=query_params).get('results')
 
     def get_all_campaigns(self):
@@ -186,8 +189,8 @@ class TestClient(AdrollClient):
         tstamp = str(dt.utcnow().timestamp())
         data = {
             'advertisable': self.ADVERTISABLE_EID,  # REQUIRED
-            # 'name': 'AD {}'.format(tstamp[:-7]),  # string (‘’) | name of the ad
-            # 'destination_url': 'http://thislemonadetateslikepotatoes{}.org'.format(tstamp[:-7]),  # string (‘’) | URL reached when ad is clicked
+            'name': 'AD {}'.format(tstamp[:-7]),  # string (‘’) | name of the ad
+            'destination_url': 'http://thislemonadetateslikepotatoes{}.org'.format(tstamp[:-7]),  # string (‘’) | URL reached when ad is clicked
             'file': self.get_ad_file(),  # REQUIRED | base64-encoded string | actual contents of the ad
             # 'ad_format_id': 34,  # "Native Square"
             # 'message': 'This is an Ad?',  # string (‘’) | message text of the FB ad (Optional 500 char limit
