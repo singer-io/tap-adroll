@@ -81,11 +81,14 @@ class TestAdrollStartDate(TestAdrollBase):
                     data_in_range = True
                     break
             if not data_in_range:
-                import pdb; pdb.set_trace()
                 if stream in self.testable_streams():
                     expected_records_1[stream].append(self.client.create(stream))
                     continue
                 assert None, "Sufficient test data does not exist for {}, test will fail.".format(stream)
+
+        ##########################################################################
+        ### First Sync
+        ##########################################################################
 
         conn_id = connections.ensure_connection(self)
 
@@ -104,17 +107,13 @@ class TestAdrollStartDate(TestAdrollBase):
         self.assertEqual(len(diff), 0, msg="discovered schemas do not match: {}".format(diff))
         print("discovered schemas are OK")
         
-        # Select all availabl streams and their fields
+        # Select all available streams and their fields
         self.select_all_streams_and_fields(conn_id=conn_id, catalogs=found_catalogs)
 
         catalogs = menagerie.get_catalogs(conn_id)
 
         #clear state
         menagerie.set_state(conn_id, {})
-
-        ##########################################################################
-        ### First Sync
-        ##########################################################################
 
         # Run sync 1
         sync_job_1 = runner.run_sync_mode(self, conn_id)
@@ -137,10 +136,6 @@ class TestAdrollStartDate(TestAdrollBase):
         ### Update START DATE Between Syncs
         ##########################################################################
 
-        # start_date_1 = self.get_properties()['start_date']
-        # self.START_DATE = dt.strftime(dt.strptime(self.START_DATE, self.START_DATE_FORMAT) \
-        #                               + timedelta(days=2), self.START_DATE_FORMAT)
-        # start_date_2 = self.START_DATE
         self.START_DATE = start_date_2
         print("REPLICATION START DATE CHANGE: {} ===>>> {} ".format(start_date_1, start_date_2))
         self.END_DATE= self.get_properties()['end_date']
@@ -167,6 +162,11 @@ class TestAdrollStartDate(TestAdrollBase):
         diff = self.expected_check_streams().symmetric_difference(found_catalog_names)
         self.assertEqual(len(diff), 0, msg="discovered schemas do not match: {}".format(diff))
         print("discovered schemas are kosher")
+
+        # Select all available streams and their fields
+        self.select_all_streams_and_fields(conn_id=conn_id, catalogs=found_catalogs)
+
+        catalogs = menagerie.get_catalogs(conn_id)
 
         # clear state
         menagerie.set_state(conn_id, {})
