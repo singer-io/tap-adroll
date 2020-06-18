@@ -43,8 +43,7 @@ class TestAdrollBase(unittest.TestCase):
         :param original: set to false to change the start_date or end_date
         """
         return_value = {
-            # Start date for ad_reports dating back to 2016
-            'start_date' : dt.strftime(dt.utcnow()-timedelta(days=3), self.START_DATE_FORMAT),
+            'start_date' : dt.strftime(dt.utcnow()-timedelta(days=5), self.START_DATE_FORMAT),
             'end_date' : dt.strftime(dt.utcnow(), self.START_DATE_FORMAT)
         }
         if original:
