@@ -159,10 +159,61 @@ class TestClient(AdrollClient):
         else:
             raise NotImplementedError
 
-    def get_ad_file(self):
-        path = '/opt/code/tap-adroll/tests/stitch_loader.png'
-        encoded_file = base64.b64encode(open(path, "rb").read())
+    def _get_abs_path(self, path):
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
+
+    def _get_ad_file(self):
+        size = random.choice(["315", "500", "600"])
+        filename = 'stitch_loader_600x{}.png'.format(size)
+        path = self._get_abs_path(filename)
+        with open(path, "rb") as image_file:
+            encoded_file = base64.b64encode(image_file.read())
+
         return encoded_file
+
+    def create_ad(self):
+        """
+        create a static native ad
+        https://developers.adroll.com/docs/guides/create-web-ads.html#native-ads
+        """
+        tstamp = str(dt.utcnow().timestamp())
+        data = {
+            'advertisable': self.ADVERTISABLE_EID,  # REQUIRED
+            'type': 'native',  # string (‘image’) | Ad type
+            'inventory_type': 'iab', # THERE IS NO DOCUMENTATION FOR THIS see link above
+            'name': 'AD {}'.format(tstamp[:-7]),  # string (‘’) | name of the ad
+            'body': 'I was created by test_client', # this is called Description in the UI
+            'destination_url': 'http://thislemonadetateslikepotatoes{}.org'.format(tstamp[:-7]),  # string (‘’) | URL reached when ad is clicked
+            'file': self._get_ad_file(),  # REQUIRED | base64-encoded string | actual contents of the ad
+        }
+        #     'ad_format': 34,  # 33 "Native Wide", 34 "Native Square"
+        #     'message': 'This is an Ad?',  # string (‘’) | message text of the FB ad (Optional 500 char limit
+        #     'brand_name': self.ADVERTISABLE_NAME,  # string ('') | brand name for native ads
+        #     'display_url_override': 'http://thislemonadetateslikepotatoes{}.org'.format(tstamp[:-7]), #'http://thislemonadetasteslikepotatoes.org/',  # REQUIRED (if 'destination_url') | string ('') | final destination URL of the redirect
+        #     'dynamic_template_id': '',  # string (‘’) | Dynamic Creative template to use
+        #     'background': '',  # string ('white’) | Background color (hex value or name) or URL to an image for the Dynamic Creative ad
+        #     'ad_format': '',  # string ('') | Ad format ID
+        #     'prefix': '',  # string ('') | Product URLs will be prefixed with this when Dynamic Creative is clicked, used for redirect-style click trackers
+        #     'tracking': '',  # string ('') | URL params to add to product URLs when Dynamic Creative is clicked
+        #     # LIQUID ADS ONLY #############################################################################################
+        #     'product': '',  # string ('') | The SWF data of the product animation loop
+        #     'logo': '',  # string ('') | The data of the logo image
+        #     # FACEBOOK ONLY ###############################################################################################
+        #     'body': '',  # string (‘’) | body text of the FB ad (only FB ads and 90 char limit
+        #     'headline': 'This is an ad?',  # string (‘’) | headline text of the FB ad (only for FB ads, 25 chars limit
+        #     'headline_dynamic': '',  # string (‘’) | headline text of the FB ad
+        #     'body_dynamic': '',  # string (‘’) | body text of the FB ad
+        #     'message_dynamic': '',  # string (‘’) | message text of the FB ad
+        #     'is_fb_dynamic': '',  # string (‘’) | True to indicate that this is a dynamic FB ad
+        #     'multiple_products': '',  # integer  (0) [0, 3, 4, 5] | Number of products the FB ad should show
+        #     'call_to_action': '',  # string (‘’) | CTA to use
+        #     'lead_gen_form_id': '',  # string (‘’) | ID of the FB lead form for Lead Ads
+        #     'multi_share_optimized': '',  # string (‘’) | True if FB should automatically select and order images for Carousel Ads 
+        #     'child_ads': '',  # string (‘’) | Comma separated list of child ads for FB Carousel Ads
+        #     'app_id': '',  # string  (‘’) | ID of application for FB App Ads
+        # }
+        resp = self.post('ad/create', data=data)
+        return resp.get('results')
 
     def create_segment(self):
         tstamp = str(dt.utcnow().timestamp())
@@ -183,44 +234,6 @@ class TestClient(AdrollClient):
             # 'sfdc_company_list_id': 'string',
         }
         resp = self.post('/segments', data=data) # REQUIRES DIFFERENT BASE ENDPOINT
-        return resp.get('results')
-
-    def create_ad(self):
-        tstamp = str(dt.utcnow().timestamp())
-        data = {
-            'advertisable': self.ADVERTISABLE_EID,  # REQUIRED
-            'name': 'AD {}'.format(tstamp[:-7]),  # string (‘’) | name of the ad
-            'destination_url': 'http://thislemonadetateslikepotatoes{}.org'.format(tstamp[:-7]),  # string (‘’) | URL reached when ad is clicked
-            'file': self.get_ad_file(),  # REQUIRED | base64-encoded string | actual contents of the ad
-            #'ad_format_id': 34,  # "Native Square"
-            # 'message': 'This is an Ad?',  # string (‘’) | message text of the FB ad (Optional 500 char limit
-            # 'type': 'native',  # string (‘image’) | Ad type
-            # 'brand_name': self.ADVERTISABLE_NAME,  # string ('') | brand name for native ads
-            # 'display_url_override': None, #'http://thislemonadetasteslikepotatoes.org/',  # REQUIRED (if 'destination_url') | string ('') | final destination URL of the redirect
-        }
-        #     'dynamic_template_id': '',  # string (‘’) | Dynamic Creative template to use
-        #     'background': '',  # string ('white’) | Background color (hex value or name) or URL to an image for the Dynamic Creative ad
-        #     'ad_format': '',  # string ('') | Ad format ID
-        #     'prefix': '',  # string ('') | Product URLs will be prefixed with this when Dynamic Creative is clicked, used for redirect-style click trackers
-        #     'tracking': '',  # string ('') | URL params to add to product URLs when Dynamic Creative is clicked
-        #     # LIQUID ADS ONLY #############################################################################################
-        #     'product': '',  # string ('') | The SWF data of the product animation loop
-        #     'logo': '',  # string ('') | The data of the logo image
-        #     # FACEBOOK ONLY ###############################################################################################
-        #     'headline': '',  # string (‘’) | headline text of the FB ad (only for FB ads, 25 chars limit
-        #     'body': '',  # string (‘’) | body text of the FB ad (only FB ads and 90 char limit
-        #     'headline_dynamic': '',  # string (‘’) | headline text of the FB ad
-        #     'body_dynamic': '',  # string (‘’) | body text of the FB ad
-        #     'message_dynamic': '',  # string (‘’) | message text of the FB ad
-        #     'is_fb_dynamic': '',  # string (‘’) | True to indicate that this is a dynamic FB ad
-        #     'multiple_products': '',  # integer  (0) [0, 3, 4, 5] | Number of products the FB ad should show
-        #     'call_to_action': '',  # string (‘’) | CTA to use
-        #     'lead_gen_form_id': '',  # string (‘’) | ID of the FB lead form for Lead Ads
-        #     'multi_share_optimized': '',  # string (‘’) | True if FB should automatically select and order images for Carousel Ads 
-        #     'child_ads': '',  # string (‘’) | Comma separated list of child ads for FB Carousel Ads
-        #     'app_id': '',  # string  (‘’) | ID of application for FB App Ads
-        # }
-        resp = self.post('ad/create', data=data)
         return resp.get('results')
 
     def create_campaign(self):

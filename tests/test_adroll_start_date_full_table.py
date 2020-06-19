@@ -22,7 +22,7 @@ class TestAdrollStartDateFullTable(TestAdrollBase):
 
     def testable_streams(self):
         return self.expected_full_table_streams().difference({ # STREAMS THAT CANNOT CURRENTLY BE TESTED
-                'advertisables', 'segments'
+            'advertisables', 'segments'
         })
 
     @classmethod
