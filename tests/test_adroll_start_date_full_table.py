@@ -48,6 +48,14 @@ class TestAdrollStartDateFullTable(TestAdrollBase):
                 import pdb; pdb.set_trace()
                 raise NotImplementedError
 
+    def timedelta_formatted(self, dtime, days=0):
+        try:
+            date_stripped = dt.strptime(dtime, self.START_DATE_FORMAT)
+            return_date = date_stripped + timedelta(days=days)
+            return dt.strftime(return_date, self.START_DATE_FORMAT)
+
+        except ValueError:
+            return Exception("Datetime object is not of the format: {}".format(self.START_DATE_FORMAT))
 
     def test_run(self):
         print("\n\nRUNNING {}\n\n".format(self.name()))
@@ -55,10 +63,7 @@ class TestAdrollStartDateFullTable(TestAdrollBase):
         # Initialize start_date state to make assertions
         self.START_DATE = self.get_properties().get('start_date')
         start_date_1 = self.START_DATE  # default
-        start_date_2 = dt.strftime(  # default + 2 days
-            dt.strptime(self.START_DATE, self.START_DATE_FORMAT) + timedelta(days=2),
-            self.START_DATE_FORMAT
-        )
+        start_date_2 = self.timedelta_formatted(self.START_DATE, 2)  # default + 2 days
 
         # get expected records
         expected_records_1 = {x: [] for x in self.expected_streams()} # ids by stream

@@ -18,7 +18,7 @@ class TestAdrollBase(unittest.TestCase):
     INCREMENTAL = "INCREMENTAL"
     FULL = "FULL_TABLE"
     START_DATE_FORMAT = "%Y-%m-%dT00:00:00Z" # %H:%M:%SZ
-    REPORTS_START_DATE = "2016-06-02T00:00:00Z"
+    REPORTS_START_DATE = "2016-06-02T00:00:00Z" # test data for ad_reports is static
     REPORTS_END_DATE = "2016-06-06T00:00:00Z"
 
     def setUp(self):
@@ -150,9 +150,8 @@ class TestAdrollBase(unittest.TestCase):
     def select_all_streams_and_fields(self, conn_id, catalogs, select_all_fields: bool = True, exclude_streams=[]):
         """Select all streams and all fields within streams"""
         for catalog in catalogs:
-            if exclude_streams:
-                if catalog.get('stream_name') in exclude_streams:
-                    continue
+            if exclude_streams and catalog.get('stream_name') in exclude_streams:
+                continue
             schema = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])
             non_selected_properties = []
             if not select_all_fields:

@@ -48,20 +48,23 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
                 except ValueError:
                     raise NotImplementedError
 
+    def timedelta_formatted(self, dtime, days=0):
+        try:
+            date_stripped = dt.strptime(dtime, self.START_DATE_FORMAT)
+            return_date = date_stripped + timedelta(days=days)
+            return dt.strftime(return_date, self.START_DATE_FORMAT)
+
+        except ValueError:
+            return Exception("Datetime object is not of the format: {}".format(self.START_DATE_FORMAT))
+
     def test_run(self):
         print("\n\nRUNNING {}\n\n".format(self.name()))
 
         # Initialize start_date state to make assertions
-        self.START_DATE = dt.strftime(
-            dt.strptime(self.REPORTS_START_DATE, self.START_DATE_FORMAT) - timedelta(days=1),
-            sefl.START_DATE_FROMAT
-        )
+        self.START_DATE = self.timedelta_formatted(self.REPORTS_START_DATE, -1)
         start_date_1 = self.START_DATE
-        start_date_2 = dt.strftime(  # + 1 days
-            dt.strptime(self.START_DATE, self.START_DATE_FORMAT) + timedelta(days=1),
-            self.START_DATE_FORMAT
-        )
-        self.END_DATE = '2016-06-06T00:00:00Z'
+        start_date_2 = self.timedelta_formatted(self.START_DATE, 1)  # + 1 days
+        self.END_DATE = self.REPORTS_END_DATE
         print("INCREMENTAL STREAMS RELY ON A STATIC DATA SET. SO WE TEST WITH:\n" +
               "  START DATE 1 | {}".format(start_date_1) +
               "  START DATE 2 | {}".format(start_date_2) +
@@ -75,20 +78,20 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
             print("Data exists for stream: {}".format(stream))
             for obj in existing_objects:
                 expected_records_1[stream].append(obj)
-            # If no objects exist since the 2nd start_date, create one
-            data_in_range = False
-            for obj in expected_records_1.get(stream):
-                created = obj.get('created_date')
-                if not created:
-                    raise Exception('Stream does not have "created_date" {}'.format(stream))
-                if self.strip_format(created) > self.strip_format(start_date_2):
-                    data_in_range = True
-                    break
-            if not data_in_range:
-                if stream in self.testable_streams():
-                    expected_records_1[stream].append(self.client.create(stream))
-                    continue
-                assert None, "Sufficient test data does not exist for {}, test will fail.".format(stream)
+            # # If no objects exist since the 2nd start_date, create one
+            # data_in_range = False
+            # for obj in expected_records_1.get(stream):
+            #     created = obj.get('created_date')
+            #     if not created:
+            #         raise Exception('Stream does not have "created_date" {}'.format(stream))
+            #     if self.strip_format(created) > self.strip_format(start_date_2):
+            #         data_in_range = True
+            #         break
+            # if not data_in_range:
+            #     if stream in self.testable_streams():
+            #         expected_records_1[stream].append(self.client.create(stream))
+            #         continue
+            #     assert None, "Sufficient test data does not exist for {}, test will fail.".format(stream)
 
         ##########################################################################
         ### First Sync

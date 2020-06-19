@@ -34,15 +34,10 @@ class TestAdrollAutomaticFields(TestAdrollBase):
     def setUpClass(cls):
         print("\n\nTEST SETUP\n")
         cls.client = TestClient()
-        # cls.advertisable = cls.client.create_advertisable()['results']
 
     @classmethod
     def tearDownClass(cls):
         print("\n\nTEST TEARDOWN\n\n")
-        # resp = cls.client.delete_advertisable(cls.advertisable.get('eid'))
-        # if resp.get('results') is not True:
-        #     raise Exception("WARNING Could not cleanup advertisable. eid: {}".format(cls.advertisable.get('eid')))
-
 
     def test_run(self):
         """
