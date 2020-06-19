@@ -192,7 +192,7 @@ class TestClient(AdrollClient):
             'name': 'AD {}'.format(tstamp[:-7]),  # string (‘’) | name of the ad
             'destination_url': 'http://thislemonadetateslikepotatoes{}.org'.format(tstamp[:-7]),  # string (‘’) | URL reached when ad is clicked
             'file': self.get_ad_file(),  # REQUIRED | base64-encoded string | actual contents of the ad
-            # 'ad_format_id': 34,  # "Native Square"
+            #'ad_format_id': 34,  # "Native Square"
             # 'message': 'This is an Ad?',  # string (‘’) | message text of the FB ad (Optional 500 char limit
             # 'type': 'native',  # string (‘image’) | Ad type
             # 'brand_name': self.ADVERTISABLE_NAME,  # string ('') | brand name for native ads

@@ -52,7 +52,10 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
         print("\n\nRUNNING {}\n\n".format(self.name()))
 
         # Initialize start_date state to make assertions
-        self.START_DATE = '2016-06-01T00:00:00Z'
+        self.START_DATE = dt.strftime(
+            dt.strptime(self.REPORTS_START_DATE, self.START_DATE_FORMAT) - timedelta(days=1),
+            sefl.START_DATE_FROMAT
+        )
         start_date_1 = self.START_DATE
         start_date_2 = dt.strftime(  # + 1 days
             dt.strptime(self.START_DATE, self.START_DATE_FORMAT) + timedelta(days=1),

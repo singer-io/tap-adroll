@@ -64,9 +64,8 @@ class TestAdrollIncrementalReplication(TestAdrollBase):
             different values for the replication key
         """
         # Overriding start/end dates
-        start_override = '2016-06-02T00:00:00Z'  # Start date for ad_reports dating back to 2016
-        end_override = '2016-06-06T00:00:00Z'
-        self.START_DATE, self.END_DATE = start_override, end_override
+        self.START_DATE = self.REPORTS_START_DATE  # ad_reports dating back to 2016
+        self.END_DATE = self.REPORTS_END_DATE
 
         # Instantiate connection with non-default start/end dates
         conn_id = connections.ensure_connection(self, original_properties=False)
