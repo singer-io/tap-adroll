@@ -203,14 +203,12 @@ class TestClient(AdrollClient):
         #     'ad_format': '',  # string ('') | Ad format ID
         #     'prefix': '',  # string ('') | Product URLs will be prefixed with this when Dynamic Creative is clicked, used for redirect-style click trackers
         #     'tracking': '',  # string ('') | URL params to add to product URLs when Dynamic Creative is clicked
-
         #     # LIQUID ADS ONLY #############################################################################################
         #     'product': '',  # string ('') | The SWF data of the product animation loop
         #     'logo': '',  # string ('') | The data of the logo image
         #     # FACEBOOK ONLY ###############################################################################################
         #     'headline': '',  # string (‘’) | headline text of the FB ad (only for FB ads, 25 chars limit
         #     'body': '',  # string (‘’) | body text of the FB ad (only FB ads and 90 char limit
-
         #     'headline_dynamic': '',  # string (‘’) | headline text of the FB ad
         #     'body_dynamic': '',  # string (‘’) | body text of the FB ad
         #     'message_dynamic': '',  # string (‘’) | message text of the FB ad
