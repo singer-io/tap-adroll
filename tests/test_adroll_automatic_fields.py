@@ -1,7 +1,6 @@
 import os
 import unittest
-from datetime import datetime as dt
-from datetime import timedelta
+
 from functools import reduce
 
 from singer import metadata
@@ -15,9 +14,6 @@ from test_client import TestClient
 
 class TestAdrollAutomaticFields(TestAdrollBase):
     """Test that with no fields selected for a stream automatic fields are still replicated"""
-    START_DATE = ""
-    END_DATE = ""
-    START_DATE_FORMAT = "%Y-%m-%dT00:00:00Z"
 
     def name(self):
         return "tap_tester_adroll_automatic_fields"
@@ -38,15 +34,10 @@ class TestAdrollAutomaticFields(TestAdrollBase):
     def setUpClass(cls):
         print("\n\nTEST SETUP\n")
         cls.client = TestClient()
-        # cls.advertisable = cls.client.create_advertisable()['results']
 
     @classmethod
     def tearDownClass(cls):
         print("\n\nTEST TEARDOWN\n\n")
-        # resp = cls.client.delete_advertisable(cls.advertisable.get('eid'))
-        # if resp.get('results') is not True:
-        #     raise Exception("WARNING Could not cleanup advertisable. eid: {}".format(cls.advertisable.get('eid')))
-
 
     def test_run(self):
         """
@@ -73,13 +64,8 @@ class TestAdrollAutomaticFields(TestAdrollBase):
                print("Data does not exist for stream: {}".format(stream))
                assert None, "more test functinality needed"
 
-        # Overriding start/end dates
-        start_override =  dt.strftime(dt.utcnow()-timedelta(days=3), self.START_DATE_FORMAT)
-        end_override = dt.strftime(dt.utcnow(), self.START_DATE_FORMAT)
-        self.START_DATE, self.END_DATE = start_override, end_override
-
-        # Instantiate connection with non-default start/end dates
-        conn_id = connections.ensure_connection(self, original_properties=False)
+        # Instantiate connection with default start/end dates
+        conn_id = connections.ensure_connection(self)
 
         # run in check mode
         check_job_name = runner.run_check_mode(self, conn_id)
