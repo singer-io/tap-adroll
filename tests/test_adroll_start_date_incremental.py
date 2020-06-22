@@ -46,7 +46,11 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
                     date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S+0000Z")
                     return date_stripped
                 except ValueError:
-                    raise NotImplementedError
+                    try:
+                        date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S.000000Z")
+                        return date_stripped
+                    except ValueError:
+                        raise NotImplementedError
 
     def timedelta_formatted(self, dtime, days=0):
         try:
@@ -201,6 +205,7 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
         for stream in self.testable_streams():
             with self.subTest(stream=stream):
                 replication_type = self.expected_replication_method().get(stream)
+                replication_key = next(iter(self.expected_metadata().get(stream).get(self.REPLICATION_KEYS)))
                 record_count_1 = record_count_by_stream_1.get(stream, 0)
                 record_count_2 = record_count_by_stream_2.get(stream, 0)
 
@@ -220,7 +225,7 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
                                      "Sync 2 record_count: {}".format(record_count_2))
 
                     # Verify all data from first sync has bookmark values >= start_date .
-                    records_from_sync_1 = set(row.get('data').get('created_date')
+                    records_from_sync_1 = set(row.get('data').get(replication_key) #.get('created_date')
                                               for row in synced_records_1.get(stream, []).get('messages', []))
                     for record in records_from_sync_1:
                         self.assertGreaterEqual(self.strip_format(record), self.strip_format(start_date_1),
@@ -229,12 +234,10 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
                                                 "Record bookmark: {} ".format(record))
 
                     # Verify all data from second sync has bookmark values >= start_date 2.
-                    records_from_sync_2 = set(row.get('data').get('created_date')
+                    records_from_sync_2 = set(row.get('data').get(replication_key) # .get('created_date')
                                               for row in synced_records_2.get(stream, []).get('messages', []))
                     for record in records_from_sync_2:
-                        # BUG | https://stitchdata.atlassian.net/browse/SRCE-3408
-                        if self.strip_format(record) < self.strip_format(start_date_2): # SKIPPING ASSERTION BELOW
-                            continue # TODO REMOVE THIS WHEN BUG ADDRESSED
+                        # BUG | https://stitchdata.atlassian.net/browse/SRCE-3408 | DELETE ME
                         self.assertGreaterEqual(self.strip_format(record), self.strip_format(start_date_2),
                                                 msg="Record was created prior to start date for 2nd sync.\n" +
                                                 "Sync 2 start_date: {}\n".format(start_date_2) +

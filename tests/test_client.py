@@ -152,7 +152,7 @@ class TestClient(AdrollClient):
         elif stream == 'campaigns':
             return self.create_campaign()
         elif stream == 'segments':
-            return self.create_segment()
+            raise NotImplementedError  #return self.create_segment()
         elif stream == 'ad_groups':
            campaign_eid = random.choice(self.get_all_campaigns()).get('eid')
            return self.create_ad_group(campaign_eid)
@@ -215,26 +215,26 @@ class TestClient(AdrollClient):
         resp = self.post('ad/create', data=data)
         return resp.get('results')
 
-    def create_segment(self):
-        tstamp = str(dt.utcnow().timestamp())
-        data = {
-            'advertisable': self.ADVERTISABLE_EID,
-            'name': 'SEGMENT {}'.format(tstamp[:-7]),
-            'conversion_value': None,
-            'duration': random.randint(1,30),
-            'type': 'p',
-            # 'data': [
-            #   {
-            #     'email': '',
-            #     'id': 'string'
-            #   }
-            # ],
-            # 'general_exclusion_type': 'string',
-            # 'is_conversion': False,
-            # 'sfdc_company_list_id': 'string',
-        }
-        resp = self.post('/segments', data=data) # REQUIRES DIFFERENT BASE ENDPOINT
-        return resp.get('results')
+    # def create_segment(self):
+    #     tstamp = str(dt.utcnow().timestamp())
+    #     data = {
+    #         'advertisable': self.ADVERTISABLE_EID,
+    #         'name': 'SEGMENT {}'.format(tstamp[:-7]),
+    #         'conversion_value': None,
+    #         'duration': random.randint(1,30),
+    #         'type': 'p',
+    #         # 'data': [
+    #         #   {
+    #         #     'email': '',
+    #         #     'id': 'string'
+    #         #   }
+    #         # ],
+    #         # 'general_exclusion_type': 'string',
+    #         # 'is_conversion': False,
+    #         # 'sfdc_company_list_id': 'string',
+    #     }
+    #     resp = self.post('/segments', data=data) # REQUIRES DIFFERENT BASE ENDPOINT
+    #     return resp.get('results')
 
     def create_campaign(self):
         tstamp = dt.utcnow().timestamp()
