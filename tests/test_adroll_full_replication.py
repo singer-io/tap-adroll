@@ -126,23 +126,32 @@ class TestAdrollFullReplication(TestAdrollBase):
                     first_sync_record_count.get(stream, 0),
                     msg="second syc didn't have more records, full sync not verified")
 
+                # TODO verify all expected records were replicated for first sync
+
                 # verify all data from 1st sync included in 2nd sync
                 first_data = [record["data"] for record
                               in first_sync_records.get(stream, {}).get("messages", {"data": {}})]
                 second_data = [record["data"] for record
                                in second_sync_records.get(stream, {}).get("messages", {"data": {}})]
-
                 same_records = 0
                 for first_record in first_data:
                     first_value = simplejson.dumps(first_record, sort_keys=True, use_decimal=True)
-
                     for compare_record in second_data:
                         compare_value = simplejson.dumps(compare_record, sort_keys=True, use_decimal=True)
-
                         if first_value == compare_value:
                             second_data.remove(compare_record)
                             same_records += 1
                             break
-
                 self.assertEqual(len(first_data), same_records,
                                  msg="Not all data from the first sync was in the second sync")
+
+                # TODO verify that the newly created records are captured by the 2nd sync
+
+                # TODO verify that the updated records are correctly captured by the 2nd sync
+
+        # TODO Remove when test complete
+        print("\n\n\tTOOD's PRESENT | The test is incomplete\n\n")
+
+
+if __name__ == '__main__':
+    unittest.main()

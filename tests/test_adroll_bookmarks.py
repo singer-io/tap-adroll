@@ -49,6 +49,17 @@ class TestAdrollIncrementalReplication(TestAdrollBase):
     def tearDown(self):
         pass
 
+    def strip_format(self, date_value):
+        try:
+            date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%SZ")
+            return date_stripped
+        except ValueError:
+            try:
+                date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S+0000Z")
+                return date_stripped
+            except ValueError:
+                raise NotImplementedError
+
 
     def test_run(self):
         """
@@ -77,10 +88,9 @@ class TestAdrollIncrementalReplication(TestAdrollBase):
         exit_status = menagerie.get_exit_status(conn_id, check_job_name)
         menagerie.verify_check_exit_status(self, exit_status, check_job_name)
 
-        # Select all streams and no fields within streams
+        # Select all streams and no fields within streams # TODO this contradicts method at top of file
         found_catalogs = menagerie.get_catalogs(conn_id)
-        incremental_streams = {key for key, value in self.expected_replication_method().items()
-                               if value == self.INCREMENTAL}
+        incremental_streams = self.expected_incremental_streams()
         our_catalogs = [catalog for catalog in found_catalogs if
                         catalog.get('tap_stream_id') in incremental_streams]
         self.select_all_streams_and_fields(conn_id, our_catalogs)
@@ -103,7 +113,10 @@ class TestAdrollIncrementalReplication(TestAdrollBase):
             replication_key = next(iter(self.expected_metadata().get(stream).get(self.REPLICATION_KEYS)))
             d1 = first_sync_state.get('bookmarks').get(stream).get(replication_key)
             d2 = self.END_DATE
-            self.assertEqual(d1.split('T')[0], d2.split('T')[0])
+            self.assertEqual(self.strip_format(d1), self.strip_format(d2),
+                             msg="Bookmark does not obey end_date.\n" +
+                             "Bookmark: {}\n".format(d1) +
+                             "End Date: {}\n".format(d2))
 
         # Get the set of records from a first sync
         first_sync_records = runner.get_records_from_target_output()
@@ -122,7 +135,7 @@ class TestAdrollIncrementalReplication(TestAdrollBase):
         for stream in incremental_streams:
             with self.subTest(stream=stream):
 
-                # verify both syncs write / keep the same bookdmark
+                # verify both syncs write / keep the same bookmark
                 self.assertEqual(first_sync_state, second_sync_state)
 
                 # verify that there is more than 1 record of data - setup necessary
@@ -136,13 +149,17 @@ class TestAdrollIncrementalReplication(TestAdrollBase):
                     msg="first syc didn't have more records, bookmark usage not verified")
 
                 # Verify that all data of the 2nd sync is >= the bookmark from the first sync
-                second_data = [record["data"]["date"] for record
+                second_data = [record.get("data").get("date") for record
                                in second_sync_records.get(stream, {}).get("messages", {"data": {}})]
 
                 replication_key = next(iter(self.expected_metadata().get(stream).get(self.REPLICATION_KEYS)))
-                first_sync_bookmark = first_sync_state.get('bookmarks').get(stream).get(replication_key).split('T')[0]
+                first_sync_bookmark = first_sync_state.get('bookmarks').get(stream).get(replication_key)
                 for date_value in second_data:
                     
-                    self.assertEqual(first_sync_bookmark,
-                                     date_value.split('T')[0],
+                    self.assertEqual(self.strip_format(first_sync_bookmark),
+                                     self.strip_format(date_value),
                                      msg="First sync bookmark does not equal 2nd sync record's replication-key")
+
+
+if __name__ == '__main__':
+    unittest.main()

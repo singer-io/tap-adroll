@@ -237,7 +237,6 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
                     records_from_sync_2 = set(row.get('data').get(replication_key) # .get('created_date')
                                               for row in synced_records_2.get(stream, []).get('messages', []))
                     for record in records_from_sync_2:
-                        # BUG | https://stitchdata.atlassian.net/browse/SRCE-3408 | DELETE ME
                         self.assertGreaterEqual(self.strip_format(record), self.strip_format(start_date_2),
                                                 msg="Record was created prior to start date for 2nd sync.\n" +
                                                 "Sync 2 start_date: {}\n".format(start_date_2) +
