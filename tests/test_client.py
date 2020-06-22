@@ -277,6 +277,49 @@ class TestClient(AdrollClient):
         return resp.get('results')
 
 
+    def update(self, stream, eid=None):
+        if stream == 'advertisables':
+            raise Exception("Creating {} objects can cause exponential increase in api calls".format(stream))
+        elif stream == 'ads':
+            return self.update_ad(eid)
+        elif stream == 'ad_reports':
+            raise NotImplementedError
+        elif stream == 'campaigns':
+            # return self.update_campaign()
+            raise NotImplementedError
+        elif stream == 'segments':
+            raise NotImplementedError  #return self.create_segment()
+        elif stream == 'ad_groups':
+            return self.update_ad_group(eid)
+        else:
+            raise NotImplementedError
+
+
+    def update_ad(self, eid):
+        tstamp = str(dt.utcnow().timestamp())
+        if eid is None:
+            eid = random.choice(self.get_all_ads()).get('eid')
+        data = {
+            'ad': eid,
+            'name': 'UPDATED AD {}'.format(tstamp[:-7]),
+        }
+        resp = self.put('ad/edit', data=data)
+        return resp.get('results')
+
+    def update_ad_group(self, eid):
+        # TODO add other types of updates
+        tstamp = str(dt.utcnow().timestamp())
+        if eid is None:
+            eid = random.choice(self.get_all_ad_groups()).get('eid')
+        data = {
+            'adgroup': eid,
+            'name': 'UPDATED AD GROUP {}'.format(tstamp[:-7]),
+            'ads': [],
+        }
+        resp = self.put('adgroup/edit', data=data)
+        return resp.get('results')
+
+
     # NB: Commented create and deletes since AdRoll as of now, doesn't
     # seem to have a true "DELETE" in their CRUD
 
@@ -292,6 +335,8 @@ class TestClient(AdrollClient):
     def post(self, url, headers=None, params=None, data=None):
         return self._make_request("POST", url, headers=headers, params=params, data=data)
 
+    def put(self, url, headers=None, params=None, data=None):
+        return self._make_request("PUT", url, headers=headers, params=params, data=data)
 
     def delete(self, url, headers=None, params=None, data=None):
         # Deleting as we've seen it thus far is a POST
