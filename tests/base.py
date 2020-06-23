@@ -169,3 +169,22 @@ class TestAdrollBase(unittest.TestCase):
                 conn_id, catalog, schema, additional_md=additional_md,
                 non_selected_fields=non_selected_properties
             )
+
+    def _get_abs_path(self, path):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
+
+    def _load_schemas(self, stream):
+        schemas = {}
+
+        path = _get_abs_path("../tap-adroll/schemas") + "/" + stream + ".json"
+        file_raw = filename.replace(".json", "")
+        with open(path) as file:
+            schemas[file_raw] = json.load(file)
+
+        return schemas
+
+    def expected_schema_keys(self, stream):
+        props = self._load_schemas(stream).get('properties')
+        assert props, "{} schema not configured proprerly"
+
+        return props.keys()

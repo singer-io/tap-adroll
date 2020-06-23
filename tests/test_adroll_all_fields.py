@@ -134,7 +134,15 @@ class TestAdrollAllFields(TestAdrollBase):
             with self.subTest(stream=stream):
                 data = synced_records.get(stream)
                 record_messages_keys = [set(row['data'].keys()) for row in data['messages']]
-                expected_keys = self.expected_records.get(stream)[0].keys()
+                expected_keys = expected_records.get(stream)[0].keys()
+
+                # Verify schema covers all fields
+                schema_keys = set(self.expected_schema_keys(stream))
+                self.assertEqual(
+                    set(), schema_keys.symmetric_difference(set(expected_keys)),
+                    msg="Fields missing from schema: {}\n".format(schema_keys.difference(set(expected_keys))) +
+                    "Fields missing from expectations: {}".format(set(expected_keys).difference(schema_keys))
+                )
 
                 # Verify that all fields are sent to the target
                 for actual_keys in record_messages_keys:
