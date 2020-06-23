@@ -60,8 +60,11 @@ class TestAdrollIncrementalReplication(TestAdrollBase):
                 date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S+0000Z")
                 return date_stripped
             except ValueError:
-                raise NotImplementedError
-
+                try:
+                    date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S.000000Z")
+                    return date_stripped
+                except ValueError:
+                    raise NotImplementedError
 
     def test_run(self):
         """

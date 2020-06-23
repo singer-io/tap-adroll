@@ -47,8 +47,6 @@ class TestAdrollAutomaticFields(TestAdrollBase):
 
         print("\n\nRUNNING {}\n\n".format(self.name()))
 
-        # TODO ensure multiple pages of data exist
-
         # ensure data exists for sync streams and set expectations
         expected_records = {x: [] for x in self.expected_streams()} # ids by stream
         for stream in self.testable_streams():
