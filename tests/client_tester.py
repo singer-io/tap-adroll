@@ -12,8 +12,8 @@ if __name__ == "__main__":
     client = TestClient()
 
     # CHANGE FLAGS HERE TO TEST SPECIFIC FUNCTION TYPES
-    test_creates = True
-    test_updates = False
+    test_creates = False
+    test_updates = True
     test_gets = False
     test_deletes = False
 
@@ -21,15 +21,28 @@ if __name__ == "__main__":
     print_objects = True
 
     objects_to_test = [ # CHANGE TO TEST DESIRED STREAMS 
-        'ads', # GET - DONE | CREATE - INPROGRESS
+        'campaigns', # GET - DONE | CREATE - DONE (werid  RATE LIMIT) | UPDATES - DONE
     ]
+    # 'ads', # GET - DONE | CREATE - DONE | UPDATE - DONE
+    # 'ad_groups', # GET - DONE | CREATE - DONE | UPDATE - DONE
     # 'segments', # GET - DONE | CREATE - INPROGRESS need to implement audience endpoint jawn
     # 'advertisables', # GET - DONE | CREATE NA (DONT DO THIS ONE)
     # 'ad_reports', GET - DONE | CREATE - N/A
-    # 'ad_groups', # GET - DONE | CREATE - DONE
-    # 'campaigns', # GET - DONE | CREATE - DONE (werid  RATE LIMIT)
+
 
     print("********** Testing basic functions of test client **********")
+    if test_gets:
+        for obj in objects_to_test:
+            print("Testing GET (all): {}".format(obj))
+            # import pdb; pdb.set_trace() # UNCOMMENT TO RUN 'INTERACTIVELY'
+            existing_obj = client.get_all(obj)
+            if existing_obj:
+                print("SUCCESS")
+                if print_objects:
+                    import pdb; pdb.set_trace()
+                    print(existing_obj)
+                continue
+            print("FAILED")
     if test_creates:
         for obj in objects_to_test:
             print("Testing CREATE: {}".format(obj))
@@ -41,15 +54,14 @@ if __name__ == "__main__":
                     print(created_obj)
                 continue
             print("FAILED")
-    if test_gets:
+    if test_updates:
         for obj in objects_to_test:
-            print("Testing GET (all): {}".format(obj))
+            print("Testing UPDATE: {}".format(obj))
             # import pdb; pdb.set_trace() # UNCOMMENT TO RUN 'INTERACTIVELY'
-            existing_obj = client.get_all(obj)
-            if existing_obj:
+            updated_obj = client.update(obj)
+            if updated_obj:
                 print("SUCCESS")
                 if print_objects:
-                    import pdb; pdb.set_trace()
-                    print(existing_obj)
+                    print(updated_obj)
                 continue
             print("FAILED")
