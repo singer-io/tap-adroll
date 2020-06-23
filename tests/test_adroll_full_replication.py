@@ -187,23 +187,11 @@ class TestAdrollFullReplication(TestAdrollBase):
                         "ADDITIONAL RECORDS: {}".format(records_from_sync_1.symmetric_difference(expected_records_from_sync_1))
                 )
 
-                # TODO verify all data from 1st sync included in 2nd sync
-                # first_data = [record["data"] for record
-                #               in first_sync_records.get(stream, {}).get("messages", {"data": {}})]
-                # second_data = [record["data"] for record
-                #                in second_sync_records.get(stream, {}).get("messages", {"data": {}})]
-                # same_records = 0
-                # for first_record in first_data:
-                #     first_value = simplejson.dumps(first_record, sort_keys=True, use_decimal=True)
-                #     for compare_record in second_data:
-                #         compare_value = simplejson.dumps(compare_record, sort_keys=True, use_decimal=True)
-                #         if first_value == compare_value:
-                #             second_data.remove(compare_record)
-                #             same_records += 1
-                #             break
-                # self.assertEqual(len(first_data), same_records,
-                #                  msg="Not all data from the first sync was in the second sync")
+                # verify all data from 1st sync included in 2nd sync
+                self.assertEqual(set(), records_from_sync_1.difference(records_from_sync_2),
+                                 msg="Data in 1st sync missing from 2nd sync")
 
+                # testing streams with new and updated data
                 if stream in self.streams_creatable():
 
                     # verify that the record count has increased by N record in the 2nd sync, where
@@ -214,8 +202,6 @@ class TestAdrollFullReplication(TestAdrollBase):
                     )
 
                     # verify that the newly created and updated records are captured by the 2nd sync
-                    if stream == 'ads':
-                        import pdb; pdb.set_trace()
                     self.assertEqual(
                         set(), records_from_sync_2.symmetric_difference(expected_records_from_sync_2),
                         msg="2nd Sync records do not match expectations.\n" +
@@ -229,7 +215,7 @@ class TestAdrollFullReplication(TestAdrollBase):
                     if expected_updated_records:
                         updated_records_from_sync_2 = set(row.get('data').get('eid')
                                                           for row in second_sync_records.get(stream, []).get('messages', [])
-                                                          if "UPDATED" in row.get('name'))
+                                                          if "UPDATED" in row.get('data').get('name'))
                         self.assertEqual(
                             set(), updated_records_from_sync_2.symmetric_difference(expected_updated_records),
                             msg="Failed to replicate the updated {} record(s)\n".format(stream) +

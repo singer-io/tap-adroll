@@ -21,12 +21,12 @@ if __name__ == "__main__":
     print_objects = True
 
     objects_to_test = [ # CHANGE TO TEST DESIRED STREAMS 
-        'ads', # GET - DONE | CREATE - INPROGRESS
+        'ad_groups', # GET - DONE | CREATE - DONE | UPDATE - INPROGRESS
     ]
+    # 'ads', # GET - DONE | CREATE - DONE | UPDATE - DONE
     # 'segments', # GET - DONE | CREATE - INPROGRESS need to implement audience endpoint jawn
     # 'advertisables', # GET - DONE | CREATE NA (DONT DO THIS ONE)
     # 'ad_reports', GET - DONE | CREATE - N/A
-    # 'ad_groups', # GET - DONE | CREATE - DONE
     # 'campaigns', # GET - DONE | CREATE - DONE (werid  RATE LIMIT)
 
     print("********** Testing basic functions of test client **********")
