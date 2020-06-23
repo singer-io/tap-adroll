@@ -16,7 +16,7 @@ class TestAdrollFullReplication(TestAdrollBase):
     def streams_creatable(self):
         """Streams which cannot currently have new records created in-test."""
         return self.expected_full_table_streams().difference({
-            'advertisables', 'segments', 'ad_reports', 'campaigns'
+            'advertisables', 'segments', 'ad_reports'
         })
 
 
