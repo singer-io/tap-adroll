@@ -14,6 +14,7 @@ class TestClient(AdrollClient):
 
     ADVERTISABLE_EID = "PWSMR23OXJGGLE4S3F5XI5"
     ADVERTISABLE_NAME = 'Advertiseable 1592412774.486537'
+    ADVERTISABLES = []  # Track state for existing advertisables to mimimize # of calls made
 
     def __init__(self):
         token = self.get_token_information()
@@ -65,8 +66,11 @@ class TestClient(AdrollClient):
         else:
             raise NotImplementedError
         
+
     def get_all_advertisables(self):
-        return self.get('organization/get_advertisables').get('results')
+        if not self.ADVERTISABLES:
+            self.ADVERTISABLES = self.get('organization/get_advertisables').get('results')
+        return self.ADVERTISABLES
 
     def get_all_ads(self):
         adv_ids = []
@@ -120,26 +124,26 @@ class TestClient(AdrollClient):
 
 
     def get_ads(self, advertisable_eid):
-        data = {'advertisable': advertisable_eid}
-        response = self.get('advertisable/get_ads', data=data)
+        query_params = {'advertisable': advertisable_eid}
+        response = self.get('advertisable/get_ads', params=query_params)
         return response.get('results', response)
 
 
     def get_campaigns(self, advertisable_eid):
-        data = {'advertisable': advertisable_eid}
-        response = self.get('advertisable/get_campaigns', data=data)
+        query_params = {'advertisable': advertisable_eid}
+        response = self.get('advertisable/get_campaigns', params=query_params)
         return response.get('results', response)
 
 
     def get_ad_groups(self, advertisable_eid):
-        data = {'advertisable': advertisable_eid}
-        response = self.get('advertisable/get_adgroups', data=data)
+        query_params = {'advertisable': advertisable_eid}
+        response = self.get('advertisable/get_adgroups', params=query_params)
         return response.get('results', response)
 
 
     def get_segments(self, advertisable_eid):
-        data = {'advertisable': advertisable_eid}
-        response = self.get('advertisable/get_adgroups', data=data)
+        query_params = {'advertisable': advertisable_eid}
+        response = self.get('advertisable/get_adgroups', params=query_params)
 
 
     def create(self, stream):
@@ -186,32 +190,6 @@ class TestClient(AdrollClient):
             'destination_url': 'http://thislemonadetateslikepotatoes{}.org'.format(tstamp[:-7]),  # string (‘’) | URL reached when ad is clicked
             'file': self._get_ad_file(),  # REQUIRED | base64-encoded string | actual contents of the ad
         }
-        #     'ad_format': 34,  # 33 "Native Wide", 34 "Native Square"
-        #     'message': 'This is an Ad?',  # string (‘’) | message text of the FB ad (Optional 500 char limit
-        #     'brand_name': self.ADVERTISABLE_NAME,  # string ('') | brand name for native ads
-        #     'display_url_override': 'http://thislemonadetateslikepotatoes{}.org'.format(tstamp[:-7]), #'http://thislemonadetasteslikepotatoes.org/',  # REQUIRED (if 'destination_url') | string ('') | final destination URL of the redirect
-        #     'dynamic_template_id': '',  # string (‘’) | Dynamic Creative template to use
-        #     'background': '',  # string ('white’) | Background color (hex value or name) or URL to an image for the Dynamic Creative ad
-        #     'ad_format': '',  # string ('') | Ad format ID
-        #     'prefix': '',  # string ('') | Product URLs will be prefixed with this when Dynamic Creative is clicked, used for redirect-style click trackers
-        #     'tracking': '',  # string ('') | URL params to add to product URLs when Dynamic Creative is clicked
-        #     # LIQUID ADS ONLY #############################################################################################
-        #     'product': '',  # string ('') | The SWF data of the product animation loop
-        #     'logo': '',  # string ('') | The data of the logo image
-        #     # FACEBOOK ONLY ###############################################################################################
-        #     'body': '',  # string (‘’) | body text of the FB ad (only FB ads and 90 char limit
-        #     'headline': 'This is an ad?',  # string (‘’) | headline text of the FB ad (only for FB ads, 25 chars limit
-        #     'headline_dynamic': '',  # string (‘’) | headline text of the FB ad
-        #     'body_dynamic': '',  # string (‘’) | body text of the FB ad
-        #     'message_dynamic': '',  # string (‘’) | message text of the FB ad
-        #     'is_fb_dynamic': '',  # string (‘’) | True to indicate that this is a dynamic FB ad
-        #     'multiple_products': '',  # integer  (0) [0, 3, 4, 5] | Number of products the FB ad should show
-        #     'call_to_action': '',  # string (‘’) | CTA to use
-        #     'lead_gen_form_id': '',  # string (‘’) | ID of the FB lead form for Lead Ads
-        #     'multi_share_optimized': '',  # string (‘’) | True if FB should automatically select and order images for Carousel Ads 
-        #     'child_ads': '',  # string (‘’) | Comma separated list of child ads for FB Carousel Ads
-        #     'app_id': '',  # string  (‘’) | ID of application for FB App Ads
-        # }
         resp = self.post('ad/create', data=data)
         return resp.get('results')
 
@@ -242,18 +220,6 @@ class TestClient(AdrollClient):
             'advertisable': self.ADVERTISABLE_EID,  # REQUIRED
             'budget': random.randint(1, 10),  # REQUIRED | number | The WEEKLY budget for the campaign
             'name': 'CAMPAIGN {}'.format(tstamp),  # string (‘’) | name of the campaign
-            # 'start_date': '',  # string | The day the campaign will start (Optional; default: tomorrow)
-            # 'end_date': '',  # string | The day the campaign will end, exclusive. If None, then will run without end. (Optional; default: None)
-            # 'adgroups': '',  # array | List of EIDs of adgroups to attach to this campaign (Optional; default: None)
-            # 'ui_budget_daily': '', # boolean | Whether or not this campaign should show a daily budget in the UI. (Optional; default: true)
-            # 'is_retargeting': '',  # boolean | Is this a retargeting campaign? Otherwise, false == geo campaign. (Optional; default: false)
-            # 'cpc': '',  # number | The CPC goal for the campaign (Optional; default: None)
-            # 'cpm': '',  # number | The CPM limit of the campaign, used in pricing model (Optional; default: None)
-            # 'status': '',  # string | The status of the campaign. One of [‘admin_review’, ‘draft’] (Optional; default: admin_review)
-            # 'max_cpm': '',  # number | The CPM limit for the networks, used in bidding (Optional; default: None)
-            # # FACEBOOK ONLY ###############################################################################################
-            # 'is_fbx_newsfeed': '',  # boolean | Is this a Facebook newsfeed campaign? Otherwise, false (Optional; default: false)
-            # 'networks': '',  # string | A string of letters representing which networks to set up initially. Currently only supports ‘f’ (Facebook). (Optional; default: None)
         }
         resp = self.post('campaign/create', data=data)
         return resp.get('results')
@@ -267,10 +233,6 @@ class TestClient(AdrollClient):
             'positive_segments': None,  # array | A comma-separated list of Segment EIDs to attach to the adgroup as positive segments (Optional; default: None)
             'negative_segments': None, # array | A comma-separated list of Segment EIDs to attach to the adgroup as negative segments (Optional; default: None)
             'geo_targets': None,  # string | JSON string of desired geo targets for the adgroup The parsed JSON should be an array of objects, each object should be like
-            # str({  # ‘[{“country_id”:19,”eid”:”YD2QNVI2GVH4DP4TIO8GEO”,”is_negative”:false}, {“region_id”:”USCA”,”eid”:”FPDT2YVTEZG3LNMQ5Q8GEO”,”is_negative”:false}]’
-            #     "country_id":19,  # one of: - “country_id” - “region_id” - “metro_id” - “city_id” - “postal_code_id” - “postal_code”
-            #     "eid":"YD2QNVI2GVH4DP4TIO8GEO", # true identifier obtained from magellan about this geo_target
-            #     "is_negative":False}),  # boolean, defaulting to False. When is_negative is true, that means the geolocation is excluded
             'placement_targets': None # array | A JSON list of placements targets for Facebook ads. One of: all, rightcolumn, desktopfeed, mobilefeed, FAN, instagramstream (Optional; default: None)
         }
         resp = self.post('adgroup/create', data=data)
@@ -285,8 +247,7 @@ class TestClient(AdrollClient):
         elif stream == 'ad_reports':
             raise NotImplementedError
         elif stream == 'campaigns':
-            # return self.update_campaign()
-            raise NotImplementedError
+            return self.update_campaign(eid)
         elif stream == 'segments':
             raise NotImplementedError  #return self.create_segment()
         elif stream == 'ad_groups':
@@ -304,19 +265,35 @@ class TestClient(AdrollClient):
             'name': 'UPDATED AD {}'.format(tstamp[:-7]),
         }
         resp = self.put('ad/edit', data=data)
-        return resp.get('results')
+        return resp.get('results').get('original') # it says original but it is the updated ad
 
     def update_ad_group(self, eid):
-        # TODO add other types of updates
         tstamp = str(dt.utcnow().timestamp())
         if eid is None:
             eid = random.choice(self.get_all_ad_groups()).get('eid')
+
+        query_params = {'adgroup': eid}
+        ads = self.get('adgroup/get', params=query_params).get('results').get('ads')
+
         data = {
             'adgroup': eid,
             'name': 'UPDATED AD GROUP {}'.format(tstamp[:-7]),
-            'ads': [],
+            'ads': ads,
         }
+
         resp = self.put('adgroup/edit', data=data)
+        return resp.get('results')
+
+    def update_campaign(self, eid):
+        tstamp = str(dt.utcnow().timestamp())
+        if eid is None:
+            eid = random.choice(self.get_all_campaigns()).get('eid')
+        data = {
+            'campaign': eid,
+            'name': 'UPDATED CAMPAIGN {}'.format(tstamp[:-7]),
+            'ui_budget_daily': True
+        }
+        resp = self.put('campaign/edit', data=data)
         return resp.get('results')
 
 

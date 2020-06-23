@@ -132,11 +132,11 @@ class TestAdrollFullReplication(TestAdrollBase):
                 expected_records_2[stream].append(new_object)
 
         # Update 1 existing record for every full table stream
-        for stream in ['ads']: # self.streams_creatable(): # TODO
+        for stream in self.streams_creatable():
             for _ in range(N):
                 print("UDPATING A RECORD FOR STREAM: {}".format(stream))
                 # eid = expected_records_1.get(stream)[-1] # most recent record prior to test
-                updated_object = self.client.update(stream).get('original') #, eid=eid)
+                updated_object = self.client.update(stream)
                 expected_records_2[stream].append(updated_object)
 
         # adjust expectations to include expected_records_1
