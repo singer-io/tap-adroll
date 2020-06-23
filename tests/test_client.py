@@ -14,7 +14,14 @@ class TestClient(AdrollClient):
 
     ADVERTISABLE_EID = "PWSMR23OXJGGLE4S3F5XI5"
     ADVERTISABLE_NAME = 'Advertiseable 1592412774.486537'
-    ADVERTISABLES = []  # Track state for existing advertisables to mimimize # of calls made
+
+    # Track state for existing data to mimimize # of calls made
+    ADVERTISABLES = []
+    ADS = []
+    AD_GROUPS = []
+    SEGMENTS = []
+    CAMPAIGNS = []
+
 
     def __init__(self):
         token = self.get_token_information()
@@ -73,14 +80,16 @@ class TestClient(AdrollClient):
         return self.ADVERTISABLES
 
     def get_all_ads(self):
-        adv_ids = []
-        ads = []
-        advertisables = self.get_all_advertisables()
-        adv_ids = [adv.get('eid') for adv in advertisables]
-        for adv in adv_ids:
-            query_params = {'advertisable': adv}
-            ads += self.get('advertisable/get_ads', params=query_params).get('results')
-        return ads
+        if not self.ADS:
+            adv_ids = []
+            ads = []
+            advertisables = self.get_all_advertisables()
+            adv_ids = [adv.get('eid') for adv in advertisables]
+            for adv in adv_ids:
+                query_params = {'advertisable': adv}
+                ads += self.get('advertisable/get_ads', params=query_params).get('results')
+            self.ADS = ads
+        return self.ADS
 
     def get_all_ad_reports(self, start_date, end_date):
         query_params = {'data_format':'entity',
@@ -89,34 +98,40 @@ class TestClient(AdrollClient):
         return self.get('/report/ad', params=query_params).get('results')
 
     def get_all_campaigns(self):
-        adv_ids = []
-        campaigns = []
-        advertisables = self.get_all_advertisables()
-        adv_ids = [adv.get('eid') for adv in advertisables]
-        for adv in adv_ids:
-            query_params = {'advertisable': adv}
-            campaigns += self.get('advertisable/get_campaigns', params=query_params).get('results')
-        return campaigns
+        if not self.CAMPAIGNS:
+            adv_ids = []
+            campaigns = []
+            advertisables = self.get_all_advertisables()
+            adv_ids = [adv.get('eid') for adv in advertisables]
+            for adv in adv_ids:
+                query_params = {'advertisable': adv}
+                campaigns += self.get('advertisable/get_campaigns', params=query_params).get('results')
+            self.CAMPAIGNS = campaigns
+        return self.CAMPAIGNS
 
     def get_all_ad_groups(self):
-        cam_ids = []
-        groups = []
-        campaigns = self.get_all_campaigns()
-        cam_ids = [cam.get('eid') for cam in campaigns]
-        for cam in cam_ids:
-            query_params = {'campaign': cam}
-            groups += self.get('campaign/get_adgroups', params=query_params).get('results')
-        return groups
+        if not self.AD_GROUPS:
+            cam_ids = []
+            groups = []
+            campaigns = self.get_all_campaigns()
+            cam_ids = [cam.get('eid') for cam in campaigns]
+            for cam in cam_ids:
+                query_params = {'campaign': cam}
+                groups += self.get('campaign/get_adgroups', params=query_params).get('results')
+                self.AD_GROUPS = groups
+        return self.AD_GROUPS
 
     def get_all_segments(self):
-        adv_ids = []
-        segments = []
-        advertisables = self.get_all_advertisables()
-        adv_ids = [adv.get('eid') for adv in advertisables]
-        for adv in adv_ids:
-            query_params = {'advertisable': adv}
-            segments += self.get('advertisable/get_segments', params=query_params).get('results')
-        return segments
+        if not self.SEGMENTS:
+            adv_ids = []
+            segments = []
+            advertisables = self.get_all_advertisables()
+            adv_ids = [adv.get('eid') for adv in advertisables]
+            for adv in adv_ids:
+                query_params = {'advertisable': adv}
+                segments += self.get('advertisable/get_segments', params=query_params).get('results')
+                self.SEGMENTS = segments
+        return self.SEGMENTS
 
     def get_advertisables(self):
         response = self.get('advertisable/get')
