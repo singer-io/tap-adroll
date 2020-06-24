@@ -196,8 +196,8 @@ class TestAdrollFullReplication(TestAdrollBase):
                     self.assertEqual(
                         set(), records_from_sync_2.symmetric_difference(expected_records_from_sync_2),
                         msg="2nd Sync records do not match expectations.\n" +
-                        "MISSING RECORDS: {}\n".format(expected_records_from_sync_2.symmetric_difference(records_from_sync_2)) +
-                        "ADDITIONAL RECORDS: {}".format(records_from_sync_2.symmetric_difference(expected_records_from_sync_2))
+                        "MISSING RECORDS: {}\n".format(expected_records_from_sync_2.difference(records_from_sync_2)) +
+                        "ADDITIONAL RECORDS: {}".format(records_from_sync_2.difference(expected_records_from_sync_2))
                     )
 
                     # verify that the updated records are correctly captured by the 2nd sync
