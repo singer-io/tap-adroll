@@ -233,7 +233,7 @@ class TestClient(AdrollClient):
         tstamp = dt.utcnow().timestamp()
         data = {
             'advertisable': self.ADVERTISABLE_EID,  # REQUIRED
-            'budget': random.randint(1, 10),  # REQUIRED | number | The WEEKLY budget for the campaign
+            'budget': round(random.uniform(7.00, 10.00), 2), # REQUIRED | number | The WEEKLY budbget for the campaign
             'name': 'CAMPAIGN {}'.format(tstamp),  # string (‘’) | name of the campaign
         }
         resp = self.post('campaign/create', data=data)
