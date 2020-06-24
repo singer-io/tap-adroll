@@ -35,7 +35,6 @@ class TestAdrollStartDateFullTable(TestAdrollBase):
     def tearDownClass(cls):
         print("\n\nTEST TEARDOWN\n\n")
 
-
     def strip_format(self, date_value):
         try:
             date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%SZ")
@@ -45,7 +44,6 @@ class TestAdrollStartDateFullTable(TestAdrollBase):
                 date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S+0000Z")
                 return date_stripped
             except ValueError:
-                import pdb; pdb.set_trace()
                 raise NotImplementedError
 
     def timedelta_formatted(self, dtime, days=0):
