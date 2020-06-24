@@ -103,8 +103,19 @@ class TestAdrollAutomaticFields(TestAdrollBase):
             # Verify all streams are selected
             selected = catalog_entry.get('annotated-schema').get('selected')
             print("Validating selection on {}: {}".format(cat['stream_name'], selected))
-            self.assertTrue(selected, msg="Stream not selected by default")
-            # TODO check selection for fields
+            self.assertTrue(selected, msg="Stream not selected.")
+
+            # Verify only automatic fields are selected
+            for field, field_props in catalog_entry.get('annotated-schema').get('properties').items():
+                field_selected = field_props.get('selected')
+                print("\tValidating selection on {}.{}: {}".format(cat['stream_name'], field, field_selected))
+
+                if field in self.expected_automatic_fields().get(cat['stream_name']):
+                    pass
+                    # TODO WHY DO AUTOMATIC FIELDS HAVE {'selected': None}
+                    # self.assertTrue(field_selected, msg="Automatic field is not selected.")
+                else:
+                    self.assertFalse(field_selected, msg="Field is selected but not automatic.")
 
         #clear state
         menagerie.set_state(conn_id, {})
