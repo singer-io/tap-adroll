@@ -1,5 +1,7 @@
 import os
 import unittest
+import json
+
 from datetime import datetime as dt
 from datetime import timedelta
 
@@ -176,17 +178,17 @@ class TestAdrollBase(unittest.TestCase):
     def _load_schemas(self, stream):
         schemas = {}
 
-        path = self._get_abs_path("/schemas") + "/" + stream + ".json"
+        path = self._get_abs_path("schemas") + "/" + stream + ".json"
         final_path = path.replace('tests', 'tap_adroll')
-        
+
         with open(final_path) as file:
             schemas[stream] = json.load(file)
 
         return schemas
 
     def expected_schema_keys(self, stream):
-        import pdb; pdb.set_trace()
-        props = self._load_schemas(stream).get('properties')
+
+        props = self._load_schemas(stream).get(stream).get('properties')
         assert props, "{} schema not configured proprerly"
 
         return props.keys()
