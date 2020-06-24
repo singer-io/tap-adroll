@@ -35,7 +35,7 @@ class TestAdrollStartDateFullTable(TestAdrollBase):
     def tearDownClass(cls):
         print("\n\nTEST TEARDOWN\n\n")
 
-    def strip_format(self, date_value):
+    def parse_date(self, date_value):
         try:
             date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%SZ")
             return date_stripped
@@ -76,9 +76,8 @@ class TestAdrollStartDateFullTable(TestAdrollBase):
             data_in_range = False
             for obj in expected_records_1.get(stream):
                 created = obj.get('created_date').replace(' ', 'T', 1) + 'Z' # 2016-06-02 19:57:10 -->> 2016-06-02T19:57:10Z
-                if not created:
-                    import pdb; pdb.set_trace()
-                if self.strip_format(created) > self.strip_format(start_date_2):
+                assert created, "'created_date' is not an attribute of {}".format(obj.get('name'))
+                if self.parse_date(created) > self.parse_date(start_date_2):
                     data_in_range = True
                     break
             if not data_in_range:

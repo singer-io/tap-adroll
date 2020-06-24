@@ -33,7 +33,7 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
     def tearDownClass(cls):
         print("\n\nTEST TEARDOWN\n\n")
 
-    def strip_format(self, date_value):
+    def parse_date(self, date_value):
         try:
             date_stripped = dt.strptime(date_value, "%Y-%m-%d %H:%M:%S")
             return date_stripped
@@ -88,7 +88,7 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
             #     created = obj.get('created_date')
             #     if not created:
             #         raise Exception('Stream does not have "created_date" {}'.format(stream))
-            #     if self.strip_format(created) > self.strip_format(start_date_2):
+            #     if self.parse_date(created) > self.parse_date(start_date_2):
             #         data_in_range = True
             #         break
             # if not data_in_range:
@@ -228,7 +228,7 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
                     records_from_sync_1 = set(row.get('data').get(replication_key) #.get('created_date')
                                               for row in synced_records_1.get(stream, []).get('messages', []))
                     for record in records_from_sync_1:
-                        self.assertGreaterEqual(self.strip_format(record), self.strip_format(start_date_1),
+                        self.assertGreaterEqual(self.parse_date(record), self.parse_date(start_date_1),
                                                 msg="Record was created prior to start date for 1st sync.\n" +
                                                 "Sync 1 start_date: {}\n".format(start_date_1) +
                                                 "Record bookmark: {} ".format(record))
@@ -237,7 +237,7 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
                     records_from_sync_2 = set(row.get('data').get(replication_key) # .get('created_date')
                                               for row in synced_records_2.get(stream, []).get('messages', []))
                     for record in records_from_sync_2:
-                        self.assertGreaterEqual(self.strip_format(record), self.strip_format(start_date_2),
+                        self.assertGreaterEqual(self.parse_date(record), self.parse_date(start_date_2),
                                                 msg="Record was created prior to start date for 2nd sync.\n" +
                                                 "Sync 2 start_date: {}\n".format(start_date_2) +
                                                 "Record bookmark: {} ".format(record))
