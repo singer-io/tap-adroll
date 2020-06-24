@@ -87,7 +87,6 @@ class TestAdrollFullReplication(TestAdrollBase):
             print("Data exists for stream: {}".format(stream))
             for obj in existing_objects:
                 expected_records_1[stream].append(obj)
-        # TODO Create 1 new record for every full table stream that is missing data
 
         conn_id = connections.ensure_connection(self)
 
