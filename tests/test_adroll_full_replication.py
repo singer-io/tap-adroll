@@ -14,10 +14,12 @@ class TestAdrollFullReplication(TestAdrollBase):
         return "tap_tester_adroll_full_replication"
 
     def streams_creatable(self):
-        """Streams which cannot currently have new records created in-test."""
-        return self.expected_full_table_streams().difference({
-            'advertisables', 'segments', 'ad_reports'
-        })
+        """Streams which can currently have new records created in-test."""
+        return self.expected_full_table_streams().difference(
+            {  # STREAMS THAT DON'T CURRENTLY SUPPORT CREATES
+                'advertisables', 'segments', 'ad_reports'
+            }
+        )
 
 
     @staticmethod
@@ -38,16 +40,6 @@ class TestAdrollFullReplication(TestAdrollBase):
     def tearDownClass(cls):
         print("\n\nTEST TEARDOWN\n\n")
 
-    def strip_format(self, date_value):
-        try:
-            date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%SZ")
-            return date_stripped
-        except ValueError:
-            try:
-                date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S+0000Z")
-                return date_stripped
-            except ValueError:
-                raise NotImplementedError
 
     def run_sync(self, conn_id):
         """
@@ -159,9 +151,9 @@ class TestAdrollFullReplication(TestAdrollBase):
                 record_count_1 = first_sync_record_count.get(stream, 0)
                 record_count_2 = second_sync_record_count.get(stream, 0)
                 # ACTUAL RECORDS
-                records_from_sync_1 = set(row.get('data').get('eid')
+                records_from_sync_1 = set(row.get('data', {}).get('eid')
                                           for row in first_sync_records.get(stream, []).get('messages', []))
-                records_from_sync_2 = set(row.get('data').get('eid')
+                records_from_sync_2 = set(row.get('data', {}).get('eid')
                                           for row in second_sync_records.get(stream, []).get('messages', []))
                 # EXPECTED_RECORDS
                 expected_records_from_sync_1 = set(record.get('eid') for record in expected_records_1.get(stream, []))
@@ -212,9 +204,9 @@ class TestAdrollFullReplication(TestAdrollBase):
                     expected_updated_records = set(record.get('eid') for record in expected_records_2.get(stream, [])
                                                    if "UPDATED" in record.get('name'))
                     if expected_updated_records:
-                        updated_records_from_sync_2 = set(row.get('data').get('eid')
+                        updated_records_from_sync_2 = set(row.get('data', {}).get('eid')
                                                           for row in second_sync_records.get(stream, []).get('messages', [])
-                                                          if "UPDATED" in row.get('data').get('name'))
+                                                          if "UPDATED" in row.get('data', {}).get('name'))
                         self.assertEqual(
                             set(), updated_records_from_sync_2.symmetric_difference(expected_updated_records),
                             msg="Failed to replicate the updated {} record(s)\n".format(stream) +

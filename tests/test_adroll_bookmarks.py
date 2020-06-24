@@ -51,7 +51,7 @@ class TestAdrollIncrementalReplication(TestAdrollBase):
     def tearDown(self):
         pass
 
-    def strip_format(self, date_value):
+    def parse_date(self, date_value):
         try:
             date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%SZ")
             return date_stripped
@@ -118,7 +118,7 @@ class TestAdrollIncrementalReplication(TestAdrollBase):
             replication_key = next(iter(self.expected_metadata().get(stream).get(self.REPLICATION_KEYS)))
             d1 = first_sync_state.get('bookmarks').get(stream).get(replication_key)
             d2 = self.END_DATE
-            self.assertEqual(self.strip_format(d1), self.strip_format(d2),
+            self.assertEqual(self.parse_date(d1), self.parse_date(d2),
                              msg="Bookmark does not obey end_date.\n" +
                              "Bookmark: {}\n".format(d1) +
                              "End Date: {}\n".format(d2))
@@ -154,15 +154,15 @@ class TestAdrollIncrementalReplication(TestAdrollBase):
                     msg="first syc didn't have more records, bookmark usage not verified")
 
                 # Verify that all data of the 2nd sync is >= the bookmark from the first sync
-                second_data = [record.get("data").get("date") for record
+                second_data = [record.get("data", {}).get("date") for record
                                in second_sync_records.get(stream, {}).get("messages", {"data": {}})]
 
                 replication_key = next(iter(self.expected_metadata().get(stream).get(self.REPLICATION_KEYS)))
                 first_sync_bookmark = first_sync_state.get('bookmarks').get(stream).get(replication_key)
                 for date_value in second_data:
                     
-                    self.assertEqual(self.strip_format(first_sync_bookmark),
-                                     self.strip_format(date_value),
+                    self.assertEqual(self.parse_date(first_sync_bookmark),
+                                     self.parse_date(date_value),
                                      msg="First sync bookmark does not equal 2nd sync record's replication-key")
 
 
