@@ -35,6 +35,7 @@ class TestAdrollStartDateFullTable(TestAdrollBase):
     def tearDownClass(cls):
         print("\n\nTEST TEARDOWN\n\n")
 
+
     def parse_date(self, date_value):
         try:
             date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%SZ")
