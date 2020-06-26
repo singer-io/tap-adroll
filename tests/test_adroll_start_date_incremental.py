@@ -77,7 +77,9 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
         # get expected records
         expected_records_1 = {x: [] for x in self.expected_streams()} # ids by stream
         for stream in self.testable_streams():
-            existing_objects = self.client.get_all(stream, self.START_DATE, self.END_DATE)
+            start_date = self.parse_date(self.START_DATE)
+            end_date = self.parse_date(self.END_DATE)
+            existing_objects = self.client.get_all(stream, start_date, end_date)
             assert existing_objects, "Test data is not properly set for {}, test will fail.".format(stream)
             print("Data exists for stream: {}".format(stream))
             for obj in existing_objects:
