@@ -12,24 +12,17 @@ from base import TestAdrollBase
 from test_client import TestClient
 
 
-class TestAdrollAutomaticFields(TestAdrollBase):
-    """Test that with no fields selected for a stream automatic fields are still replicated"""
+class TestAdrollAllFields(TestAdrollBase):
+    """Test that with all fields selected for a stream we replicate data as expected"""
 
     def name(self):
-        return "tap_tester_adroll_automatic_fields"
-
+        return "tap_tester_adroll_all_fields"
 
     def testable_streams(self):
         return set(self.expected_streams()).difference(
-            {'ad_reports',} # STREAMS THAT CANNOT CURRENTLY BE TESTED
+            {'ad_reports','segments'} # STREAMS THAT CANNOT CURRENTLY BE TESTED
         )
 
-    def expected_automatic_fields(self):
-        fks = self.expected_foreign_keys()
-        pks = self.expected_primary_keys()
-
-        return {stream: fks.get(stream, set()) | pks.get(stream, set())
-                for stream in self.expected_streams()}
     @classmethod
     def setUpClass(cls):
         print("\n\nTEST SETUP\n")
@@ -54,10 +47,7 @@ class TestAdrollAutomaticFields(TestAdrollBase):
             if existing_objects:
                 print("Data exists for stream: {}".format(stream))
                 for obj in existing_objects:
-                    expected_records[stream].append(
-                        {field: obj.get(field)
-                         for field in self.expected_automatic_fields().get(stream)}
-                    )
+                    expected_records[stream].append(obj)
             else:
                print("Data does not exist for stream: {}".format(stream))
                assert None, "more test functinality needed"
@@ -80,20 +70,8 @@ class TestAdrollAutomaticFields(TestAdrollBase):
         self.assertEqual(len(diff), 0, msg="discovered schemas do not match: {}".format(diff))
         print("discovered schemas are OK")
 
-        
-        for cat in found_catalogs:
-            catalog_entry = menagerie.get_annotated_schema(conn_id, cat['stream_id'])
-
-            # Verify that pks, rep keys, foreign keys have inclusion of automatic (metadata and annotated schema).        
-            for k in self.expected_automatic_fields().get(cat['stream_name']):
-                mdata = next((m for m in catalog_entry['metadata']
-                              if len(m['breadcrumb']) == 2 and m['breadcrumb'][1] == k), None)
-
-                print("Validating inclusion on {}: {}".format(cat['stream_name'], mdata))
-                self.assertTrue(mdata and mdata['metadata']['inclusion'] == 'automatic')
-            
-        # Deselect all available fields from all streams, keep automatic fields
-        self.select_all_streams_and_fields(conn_id=conn_id, catalogs=found_catalogs, select_all_fields=False)
+        # Select all available fields from all streams
+        self.select_all_streams_and_fields(conn_id=conn_id, catalogs=found_catalogs, select_all_fields=True)
 
         catalogs = menagerie.get_catalogs(conn_id)
 
@@ -105,16 +83,11 @@ class TestAdrollAutomaticFields(TestAdrollBase):
             print("Validating selection on {}: {}".format(cat['stream_name'], selected))
             self.assertTrue(selected, msg="Stream not selected.")
 
-            # Verify only automatic fields are selected
+            # Verify all fields within each stream are selected
             for field, field_props in catalog_entry.get('annotated-schema').get('properties').items():
                 field_selected = field_props.get('selected')
                 print("\tValidating selection on {}.{}: {}".format(cat['stream_name'], field, field_selected))
-                if field in self.expected_automatic_fields().get(cat['stream_name']):
-                    # NOTE: AUTOMATIC FIELDS IGNORE THE SELECTED md {'selected': None}
-                    print("NOTE: selection for {} is ignored by the Transformer ".format(field) +
-                          " so long as 'inlcusion' = 'automatic'")
-                else:
-                    self.assertFalse(field_selected, msg="Field is selected but not automatic.")
+                self.assertTrue(field_selected, msg="Field not selected.")
 
         #clear state
         menagerie.set_state(conn_id, {})
@@ -144,13 +117,28 @@ class TestAdrollAutomaticFields(TestAdrollBase):
             with self.subTest(stream=stream):
                 data = synced_records.get(stream)
                 record_messages_keys = [set(row['data'].keys()) for row in data['messages']]
-                expected_keys = self.expected_automatic_fields().get(stream)
+                expected_keys = expected_records.get(stream)[0].keys()
 
-                # Verify that only the automatic fields are sent to the target
+
+                # Verify schema covers all fields
+                schema_keys = set(self.expected_schema_keys(stream))
+                # BUG | https://stitchdata.atlassian.net/browse/SRCE-3423
+                if stream in ['ads', 'ad_groups', 'advertisables', 'campaigns']:  # REMOVE ME
+                    continue  # REMOVE ME
+                self.assertEqual(
+                    set(), set(expected_keys).difference(schema_keys),
+                    msg="\nFields missing from schema: {}\n".format(set(expected_keys).difference(schema_keys))
+                )
+
+                # not a test, just logging the fields that are included in the schema but not in the expectations
+                if schema_keys.difference(set(expected_keys)):
+                    print("WARNING Fields missing from expectations: {}".format(schema_keys.difference(set(expected_keys))))
+
+                # Verify that all fields are sent to the target
                 for actual_keys in record_messages_keys:
                     self.assertEqual(
-                        actual_keys.symmetric_difference(expected_keys), set(),
-                        msg="Expected automatic fields and nothing else.")
+                        actual_keys.symmetric_difference(schema_keys), set(),
+                        msg="Expected all fields, as defined by schemas/{}.json".format(stream))
 
                 actual_records = [row['data'] for row in data['messages']]
 

@@ -1,5 +1,7 @@
 import os
 import unittest
+import json
+
 from datetime import datetime as dt
 from datetime import timedelta
 
@@ -169,3 +171,52 @@ class TestAdrollBase(unittest.TestCase):
                 conn_id, catalog, schema, additional_md=additional_md,
                 non_selected_fields=non_selected_properties
             )
+
+    def _get_abs_path(self, path):
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
+
+    def _load_schemas(self, stream):
+        schemas = {}
+
+        path = self._get_abs_path("schemas") + "/" + stream + ".json"
+        final_path = path.replace('tests', 'tap_adroll')
+
+        with open(final_path) as file:
+            schemas[stream] = json.load(file)
+
+        return schemas
+
+    def expected_schema_keys(self, stream):
+
+        props = self._load_schemas(stream).get(stream).get('properties')
+        assert props, "{} schema not configured proprerly"
+
+        return props.keys()
+
+    def timedelta_formatted(self, dtime, days=0):
+        try:
+            date_stripped = dt.strptime(dtime, self.START_DATE_FORMAT)
+            return_date = date_stripped + timedelta(days=days)
+            return dt.strftime(return_date, self.START_DATE_FORMAT)
+
+        except ValueError:
+            return Exception("Datetime object is not of the format: {}".format(self.START_DATE_FORMAT))
+
+    def parse_date(self, date_value):
+        try:
+            date_stripped = dt.strptime(date_value, "%Y-%m-%d %H:%M:%S")
+            return date_stripped
+        except ValueError:
+            try:
+                date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%SZ")
+                return date_stripped
+            except ValueError:
+                try:
+                    date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S+0000Z")
+                    return date_stripped
+                except ValueError:
+                    try:
+                        date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S.000000Z")
+                        return date_stripped
+                    except ValueError:
+                        raise NotImplementedError

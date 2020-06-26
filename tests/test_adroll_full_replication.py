@@ -14,10 +14,12 @@ class TestAdrollFullReplication(TestAdrollBase):
         return "tap_tester_adroll_full_replication"
 
     def streams_creatable(self):
-        """Streams which cannot currently have new records created in-test."""
-        return self.expected_full_table_streams().difference({
-            'advertisables', 'segments', 'ad_reports'
-        })
+        """Streams which can currently have new records created in-test."""
+        return self.expected_full_table_streams().difference(
+            {  # STREAMS THAT DON'T CURRENTLY SUPPORT CREATES
+                'advertisables', 'segments'
+            }
+        )
 
 
     @staticmethod
@@ -38,16 +40,6 @@ class TestAdrollFullReplication(TestAdrollBase):
     def tearDownClass(cls):
         print("\n\nTEST TEARDOWN\n\n")
 
-    def strip_format(self, date_value):
-        try:
-            date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%SZ")
-            return date_stripped
-        except ValueError:
-            try:
-                date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S+0000Z")
-                return date_stripped
-            except ValueError:
-                raise NotImplementedError
 
     def run_sync(self, conn_id):
         """
@@ -79,6 +71,9 @@ class TestAdrollFullReplication(TestAdrollBase):
         For EACH stream that is fully replicated there are multiple rows of data with
             different values for the replication key
         """
+        CREATED_RECORDS = {x: [] for x in self.expected_streams()}
+        UPDATED_RECORDS = {x: [] for x in self.expected_streams()}
+
         # Ensure data exists prior to test for all full table streams
         expected_records_1 = {x: [] for x in self.expected_streams()}
         for stream in self.expected_full_table_streams():
@@ -129,6 +124,7 @@ class TestAdrollFullReplication(TestAdrollBase):
                 print("CREATING A RECORD FOR STREAM: {}".format(stream))
                 new_object = self.client.create(stream)
                 expected_records_2[stream].append(new_object)
+                CREATED_RECORDS[stream].append(new_object)
 
         # Update 1 existing record for every full table stream
         for stream in self.streams_creatable():
@@ -137,6 +133,7 @@ class TestAdrollFullReplication(TestAdrollBase):
                 # eid = expected_records_1.get(stream)[-1] # most recent record prior to test
                 updated_object = self.client.update(stream)
                 expected_records_2[stream].append(updated_object)
+                UPDATED_RECORDS[stream].append(updated_object)
 
         # adjust expectations to include expected_records_1
         for stream in self.streams_creatable():
@@ -159,9 +156,9 @@ class TestAdrollFullReplication(TestAdrollBase):
                 record_count_1 = first_sync_record_count.get(stream, 0)
                 record_count_2 = second_sync_record_count.get(stream, 0)
                 # ACTUAL RECORDS
-                records_from_sync_1 = set(row.get('data').get('eid')
+                records_from_sync_1 = set(row.get('data', {}).get('eid')
                                           for row in first_sync_records.get(stream, []).get('messages', []))
-                records_from_sync_2 = set(row.get('data').get('eid')
+                records_from_sync_2 = set(row.get('data', {}).get('eid')
                                           for row in second_sync_records.get(stream, []).get('messages', []))
                 # EXPECTED_RECORDS
                 expected_records_from_sync_1 = set(record.get('eid') for record in expected_records_1.get(stream, []))
@@ -204,23 +201,36 @@ class TestAdrollFullReplication(TestAdrollBase):
                     self.assertEqual(
                         set(), records_from_sync_2.symmetric_difference(expected_records_from_sync_2),
                         msg="2nd Sync records do not match expectations.\n" +
-                        "MISSING RECORDS: {}\n".format(expected_records_from_sync_2.symmetric_difference(records_from_sync_2)) +
-                        "ADDITIONAL RECORDS: {}".format(records_from_sync_2.symmetric_difference(expected_records_from_sync_2))
+                        "MISSING RECORDS: {}\n".format(expected_records_from_sync_2.difference(records_from_sync_2)) +
+                        "ADDITIONAL RECORDS: {}".format(records_from_sync_2.difference(expected_records_from_sync_2))
                     )
 
                     # verify that the updated records are correctly captured by the 2nd sync
                     expected_updated_records = set(record.get('eid') for record in expected_records_2.get(stream, [])
                                                    if "UPDATED" in record.get('name'))
                     if expected_updated_records:
-                        updated_records_from_sync_2 = set(row.get('data').get('eid')
+                        updated_records_from_sync_2 = set(row.get('data', {}).get('eid')
                                                           for row in second_sync_records.get(stream, []).get('messages', [])
-                                                          if "UPDATED" in row.get('data').get('name'))
+                                                          if "UPDATED" in row.get('data', {}).get('name'))
+                        # check that the updated records are present in the target
                         self.assertEqual(
                             set(), updated_records_from_sync_2.symmetric_difference(expected_updated_records),
                             msg="Failed to replicate the updated {} record(s)\n".format(stream) +
                             "MISSING RECORDS: {}\n".format(expected_updated_records.difference(updated_records_from_sync_2)) +
                             "ADDITIONAL RECORDS: {}\n".format(updated_records_from_sync_2.difference(expected_updated_records))
                         )
+                        # check that the record data matches expectations
+                        self.assertEqual(len(UPDATED_RECORDS.get(stream, [])), 1, msg="Expectations are invalid")
+                        updated_record = UPDATED_RECORDS.get(stream, []).pop()
+
+                        record_name = [row.get('data', {}).get('name')
+                                       for row in second_sync_records.get(stream, []).get('messages', [])
+                                       if row.get('data', {}).get('eid') == updated_record.get('eid')]
+                        expected_record_name = updated_record.get('name')
+                        self.assertEqual(len(record_name), 1, msg="Updated record was duplicated.")
+
+                        self.assertEqual(expected_record_name, record_name.pop(),
+                                         msg="Update was not captured correctly.")
 
         # TODO Remove when test complete
         print("\n\n\tTOOD's PRESENT | The test is incomplete\n\n")

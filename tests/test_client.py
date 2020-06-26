@@ -2,6 +2,7 @@ import os
 import random
 import base64
 from datetime import datetime as dt
+from datetime import timedelta
 
 from oauthlib.oauth2 import LegacyApplicationClient
 from requests_oauthlib import OAuth2Session
@@ -19,6 +20,7 @@ class TestClient(AdrollClient):
     ADVERTISABLES = []
     ADS = []
     AD_GROUPS = []
+    AD_REPORTS = []
     SEGMENTS = []
     CAMPAIGNS = []
 
@@ -92,10 +94,32 @@ class TestClient(AdrollClient):
         return self.ADS
 
     def get_all_ad_reports(self, start_date, end_date):
-        query_params = {'data_format':'entity',
-                        'start_date':start_date,
-                        'end_date':end_date}
-        return self.get('/report/ad', params=query_params).get('results')
+        if not self.AD_REPORTS:
+            adv_ids = []
+            reports = []
+
+            advertisables = self.get_all_advertisables()
+            adv_ids = [adv.get('eid') for adv in advertisables]
+
+            days = (end_date - start_date).days + 1
+            for d in range(days):
+
+                for adv in adv_ids:
+                    start = start_date + timedelta( days = d )
+                    end = start + timedelta( days = 1 )
+                    assert end <= end_date + timedelta( days = 1 ), "TEST IMPLEMENTATION ERROR"
+                    query_params = {'advertisable': adv,
+                                    'data_format': 'entity',
+                                    'start_date': dt.strftime(start, "%m-%d-%Y"),
+                                    'end_date': dt.strftime(end, "%m-%d-%Y")}
+                    records = self.get('report/ad', params=query_params).get('results')
+                    for rec in records:
+                        rec['date'] = dt.strftime(start, "%Y-%m-%dT00:00:00.000000Z")
+                    reports += records
+
+            self.AD_REPORTS = reports
+
+        return self.AD_REPORTS
 
     def get_all_campaigns(self):
         if not self.CAMPAIGNS:
@@ -269,7 +293,6 @@ class TestClient(AdrollClient):
             return self.update_ad_group(eid)
         else:
             raise NotImplementedError
-
 
     def update_ad(self, eid):
         tstamp = str(dt.utcnow().timestamp())

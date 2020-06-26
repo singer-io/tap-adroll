@@ -33,7 +33,7 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
     def tearDownClass(cls):
         print("\n\nTEST TEARDOWN\n\n")
 
-    def strip_format(self, date_value):
+    def parse_date(self, date_value):
         try:
             date_stripped = dt.strptime(date_value, "%Y-%m-%d %H:%M:%S")
             return date_stripped
@@ -77,25 +77,13 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
         # get expected records
         expected_records_1 = {x: [] for x in self.expected_streams()} # ids by stream
         for stream in self.testable_streams():
-            existing_objects = self.client.get_all(stream, self.START_DATE, self.END_DATE)
+            start_date = self.parse_date(self.START_DATE)
+            end_date = self.parse_date(self.END_DATE)
+            existing_objects = self.client.get_all(stream, start_date, end_date)
             assert existing_objects, "Test data is not properly set for {}, test will fail.".format(stream)
             print("Data exists for stream: {}".format(stream))
             for obj in existing_objects:
                 expected_records_1[stream].append(obj)
-            # # If no objects exist since the 2nd start_date, create one
-            # data_in_range = False
-            # for obj in expected_records_1.get(stream):
-            #     created = obj.get('created_date')
-            #     if not created:
-            #         raise Exception('Stream does not have "created_date" {}'.format(stream))
-            #     if self.strip_format(created) > self.strip_format(start_date_2):
-            #         data_in_range = True
-            #         break
-            # if not data_in_range:
-            #     if stream in self.testable_streams():
-            #         expected_records_1[stream].append(self.client.create(stream))
-            #         continue
-            #     assert None, "Sufficient test data does not exist for {}, test will fail.".format(stream)
 
         ##########################################################################
         ### First Sync
@@ -118,7 +106,7 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
         self.assertEqual(len(diff), 0, msg="discovered schemas do not match: {}".format(diff))
         print("discovered schemas are OK")
 
-        # Select all available streams and their fields
+        # Select all available fields from testable streams
         exclude_streams = list(self.expected_streams().difference(self.testable_streams()))
         self.select_all_streams_and_fields(conn_id=conn_id, catalogs=found_catalogs,
                                            exclude_streams=exclude_streams)
@@ -228,7 +216,7 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
                     records_from_sync_1 = set(row.get('data').get(replication_key) #.get('created_date')
                                               for row in synced_records_1.get(stream, []).get('messages', []))
                     for record in records_from_sync_1:
-                        self.assertGreaterEqual(self.strip_format(record), self.strip_format(start_date_1),
+                        self.assertGreaterEqual(self.parse_date(record), self.parse_date(start_date_1),
                                                 msg="Record was created prior to start date for 1st sync.\n" +
                                                 "Sync 1 start_date: {}\n".format(start_date_1) +
                                                 "Record bookmark: {} ".format(record))
@@ -237,7 +225,7 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
                     records_from_sync_2 = set(row.get('data').get(replication_key) # .get('created_date')
                                               for row in synced_records_2.get(stream, []).get('messages', []))
                     for record in records_from_sync_2:
-                        self.assertGreaterEqual(self.strip_format(record), self.strip_format(start_date_2),
+                        self.assertGreaterEqual(self.parse_date(record), self.parse_date(start_date_2),
                                                 msg="Record was created prior to start date for 2nd sync.\n" +
                                                 "Sync 2 start_date: {}\n".format(start_date_2) +
                                                 "Record bookmark: {} ".format(record))
