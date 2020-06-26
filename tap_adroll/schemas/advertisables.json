@@ -574,6 +574,36 @@
         "null",
         "string"
       ]
+    },
+    "ip_address_exclusions": {
+      "type": [
+        "null",
+        "array"
+      ],
+      "items": {
+        "type": [
+          "null",
+          "string"
+        ]
+      }
+    },
+    "hide_optins_page": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "blacklisted_sites": {
+      "type": [
+        "null",
+        "array"
+      ],
+      "items": {
+        "type": [
+          "null",
+          "string"
+        ]
+      }
     }
   }
 }

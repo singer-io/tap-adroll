@@ -123,8 +123,6 @@ class TestAdrollAllFields(TestAdrollBase):
                 # Verify schema covers all fields
                 schema_keys = set(self.expected_schema_keys(stream))
                 # BUG | https://stitchdata.atlassian.net/browse/SRCE-3423
-                if stream in ['ads', 'ad_groups', 'advertisables', 'campaigns']:  # REMOVE ME
-                    continue  # REMOVE ME
                 self.assertEqual(
                     set(), set(expected_keys).difference(schema_keys),
                     msg="\nFields missing from schema: {}\n".format(set(expected_keys).difference(schema_keys))
