@@ -82,20 +82,6 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
             print("Data exists for stream: {}".format(stream))
             for obj in existing_objects:
                 expected_records_1[stream].append(obj)
-            # # If no objects exist since the 2nd start_date, create one
-            # data_in_range = False
-            # for obj in expected_records_1.get(stream):
-            #     created = obj.get('created_date')
-            #     if not created:
-            #         raise Exception('Stream does not have "created_date" {}'.format(stream))
-            #     if self.parse_date(created) > self.parse_date(start_date_2):
-            #         data_in_range = True
-            #         break
-            # if not data_in_range:
-            #     if stream in self.testable_streams():
-            #         expected_records_1[stream].append(self.client.create(stream))
-            #         continue
-            #     assert None, "Sufficient test data does not exist for {}, test will fail.".format(stream)
 
         ##########################################################################
         ### First Sync
@@ -118,7 +104,7 @@ class TestAdrollStartDateIncremental(TestAdrollBase):
         self.assertEqual(len(diff), 0, msg="discovered schemas do not match: {}".format(diff))
         print("discovered schemas are OK")
 
-        # Select all available streams and their fields
+        # Select all available fields from testable streams
         exclude_streams = list(self.expected_streams().difference(self.testable_streams()))
         self.select_all_streams_and_fields(conn_id=conn_id, catalogs=found_catalogs,
                                            exclude_streams=exclude_streams)

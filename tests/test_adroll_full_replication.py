@@ -17,7 +17,7 @@ class TestAdrollFullReplication(TestAdrollBase):
         """Streams which can currently have new records created in-test."""
         return self.expected_full_table_streams().difference(
             {  # STREAMS THAT DON'T CURRENTLY SUPPORT CREATES
-                'advertisables', 'segments', 'ad_reports'
+                'advertisables', 'segments'
             }
         )
 
