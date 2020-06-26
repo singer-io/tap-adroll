@@ -109,11 +109,10 @@ class TestAdrollAutomaticFields(TestAdrollBase):
             for field, field_props in catalog_entry.get('annotated-schema').get('properties').items():
                 field_selected = field_props.get('selected')
                 print("\tValidating selection on {}.{}: {}".format(cat['stream_name'], field, field_selected))
-
                 if field in self.expected_automatic_fields().get(cat['stream_name']):
-                    pass
-                    # TODO WHY DO AUTOMATIC FIELDS HAVE {'selected': None}
-                    # self.assertTrue(field_selected, msg="Automatic field is not selected.")
+                    # NOTE: AUTOMATIC FIELDS IGNORE THE SELECTED md {'selected': None}
+                    print("NOTE: selection for {} is ignored by the Transformer ".format(field) +
+                          " so long as 'inlcusion' = 'automatic'")
                 else:
                     self.assertFalse(field_selected, msg="Field is selected but not automatic.")
 
