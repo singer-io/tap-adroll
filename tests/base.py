@@ -143,11 +143,22 @@ class TestAdrollBase(unittest.TestCase):
         return dictionary with key of table name and
         value is set of foreign keys
         """
-        return {  # TODO add foreign keys if found
+        # NOTE: Foreign keys decided not a requirement to be autoamtic
+        return {
             "advertiseables": set(),
             "ads": set(),
-            "advertiseables": set()
+            'ad_groups': set(),
+            'ad_reports': set(),
+            'campaigns': set(),
+            'segments': set()
         }
+
+    def expected_automatic_fields(self):
+        fks = self.expected_foreign_keys()
+        pks = self.expected_primary_keys()
+
+        return {stream: fks.get(stream, set()) | pks.get(stream, set())
+                for stream in self.expected_streams()}
 
     def select_all_streams_and_fields(self, conn_id, catalogs, select_all_fields: bool = True, exclude_streams=[]):
         """Select all streams and all fields within streams"""
