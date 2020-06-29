@@ -21,8 +21,8 @@ class TestAdrollStartDateFullTable(TestAdrollBase):
         return "tap_tester_adroll_start_date_full_table"
 
     def testable_streams(self):
-        return self.expected_full_table_streams().difference({ # STREAMS THAT CANNOT CURRENTLY BE TESTED
-            'advertisables', 'segments'
+        return self.expected_full_table_streams().difference({
+            'advertisables',  # STREAMS THAT CANNOT CURRENTLY BE TESTED
         })
 
     @classmethod
@@ -35,26 +35,6 @@ class TestAdrollStartDateFullTable(TestAdrollBase):
     def tearDownClass(cls):
         print("\n\nTEST TEARDOWN\n\n")
 
-
-    def parse_date(self, date_value):
-        try:
-            date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%SZ")
-            return date_stripped
-        except ValueError:
-            try: 
-                date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S+0000Z")
-                return date_stripped
-            except ValueError:
-                raise NotImplementedError
-
-    def timedelta_formatted(self, dtime, days=0):
-        try:
-            date_stripped = dt.strptime(dtime, self.START_DATE_FORMAT)
-            return_date = date_stripped + timedelta(days=days)
-            return dt.strftime(return_date, self.START_DATE_FORMAT)
-
-        except ValueError:
-            return Exception("Datetime object is not of the format: {}".format(self.START_DATE_FORMAT))
 
     def test_run(self):
         print("\n\nRUNNING {}\n\n".format(self.name()))
@@ -215,7 +195,6 @@ class TestAdrollStartDateFullTable(TestAdrollBase):
                                      "Sync 2 start_date: {} ".format(start_date_2) + 
                                      "Sync 2 record_count: {}".format(record_count_2))
 
-
                     # Verify all records in the 1st sync are included in the 2nd sync since
                     # 2nd sync has a later start date.
                     records_from_sync_1 = set(row.get('data').get('eid')
@@ -226,28 +205,11 @@ class TestAdrollStartDateFullTable(TestAdrollBase):
                                      msg="Sync 2 record(s) missing from Sync 1:\n{}".format(
                                          records_from_sync_2.difference(records_from_sync_1))
                     )
-                    # self.assertEqual(set(), records_from_sync_1.difference(records_from_sync_2),
-                    #                  msg="Sync 1 record(s) missing from Sync 2:\n{}".format(
-                    #                      records_from_sync_1.difference(records_from_sync_2))
-                    # )
-
-                    """
-                    expected = set(record.get('eid') for record in expected_records_1.get(stream))
-                    acutal = set(row.get('data').get('eid')
-                                 for row in synced_records_1.get(stream, []).get('messages', []))
-                    self.assertEqual(set(), expected.difference(actual),
-                                     msg="Expected record(s) not replicated:\n{}".format(expected.difference(actual)))
-                    self.assertEqual(set(), actual.difference(expected),
-                                     msg="Unexpected record(s) replicated:\n{}".format(expected.difference(actual)))
-                    """
 
                 else:
                     raise Exception("Expectations are set incorrectly. {} cannot have a "
                                     "replication method of {}".format(stream, replication_type))
                     
-        # TODO Remove when test complete
-        print("\n\n\tTOOD's PRESENT | The test is incomplete\n\n")
-
 
 if __name__ == '__main__':
     unittest.main()

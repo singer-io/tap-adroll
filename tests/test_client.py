@@ -195,7 +195,7 @@ class TestClient(AdrollClient):
         elif stream == 'campaigns':
             return self.create_campaign()
         elif stream == 'segments':
-            raise NotImplementedError  #return self.create_segment()
+            return self.create_segment()
         elif stream == 'ad_groups':
            campaign_eid = random.choice(self.get_all_campaigns()).get('eid')
            return self.create_ad_group(campaign_eid)
@@ -232,26 +232,44 @@ class TestClient(AdrollClient):
         resp = self.post('ad/create', data=data)
         return resp.get('results')
 
-    # def create_segment(self):
-    #     tstamp = str(dt.utcnow().timestamp())
-    #     data = {
-    #         'advertisable': self.ADVERTISABLE_EID,
-    #         'name': 'SEGMENT {}'.format(tstamp[:-7]),
-    #         'conversion_value': None,
-    #         'duration': random.randint(1,30),
-    #         'type': 'p',
-    #         # 'data': [
-    #         #   {
-    #         #     'email': '',
-    #         #     'id': 'string'
-    #         #   }
-    #         # ],
-    #         # 'general_exclusion_type': 'string',
-    #         # 'is_conversion': False,
-    #         # 'sfdc_company_list_id': 'string',
-    #     }
-    #     resp = self.post('/segments', data=data) # REQUIRES DIFFERENT BASE ENDPOINT
-    #     return resp.get('results')
+    def create_segment(self):
+        # Create segment via 'audience' api
+        tstamp = str(dt.utcnow().timestamp())
+        query_params = {
+            'advertiser_id': self.ADVERTISABLE_EID,
+            'type': 'custom',
+            'name': 'SEGMENT {}'.format(tstamp[:-7]),
+            'duration': random.randint(1,30),
+        }
+        new_segment_resp = self.post('segments', params=query_params, override_api='audience') # REQUIRES DIFFERENT BASE ENDPOINT
+        result = new_segment_resp.get('result').lower()
+        assert result == 'success', "Result of attempted create: {}".format(result)
+
+        # Add segment to adgroup
+        adgroup_eid = random.choice(self.get_all_ad_groups()).get('eid')
+        new_segment_id = new_segment_resp.get('segment', {}).get('segment_id')
+        assert new_segment_id, "Segment was not created successfully, or the api has changed the return for this create"
+        query_params = {
+            'segments': new_segment_id, # 'QUFXJWKZRJGDDPIXDD8SEG',
+            'adgroup': adgroup_eid,
+        }
+        added_segment_resp = self.put('adgroup/add_segments', params=query_params).get('results')
+        if not added_segment_resp:
+            raise Exception("Falied to add segment to adgroup\nparams: {}".format(query_params))
+
+        # Get all segments from adgroups
+        self.SEGMENTS = None # reset to None to get newer segements
+        all_segments = self.get_all_segments()
+        matching_segments = [segment for segment in all_segments if segment.get('eid') == new_segment_id]
+        if not matching_segments:
+            import pdb; pdb.set_trace()
+        if len(matching_segments) != 1:
+            import pdb; pdb.set_trace()
+        assert matching_segments, "Segment was not successfully attached to an adgroup"
+        assert len(matching_segments) == 1, "Segment is attached to multiple adgroups"
+
+        # return the correctly formatted expected record
+        return matching_segments.pop()
 
     def create_campaign(self):
         tstamp = dt.utcnow().timestamp()
@@ -288,7 +306,7 @@ class TestClient(AdrollClient):
         elif stream == 'campaigns':
             return self.update_campaign(eid)
         elif stream == 'segments':
-            raise NotImplementedError  #return self.create_segment()
+            return self.update_segment(eid)
         elif stream == 'ad_groups':
             return self.update_ad_group(eid)
         else:
@@ -334,6 +352,17 @@ class TestClient(AdrollClient):
         resp = self.put('campaign/edit', data=data)
         return resp.get('results')
 
+    def update_segment(self, eid):
+        tstamp = str(dt.utcnow().timestamp())
+        if eid is None:
+            eid = random.choice(self.get_all_segments()).get('eid')
+        data = {
+            'segment': eid,
+            'name': 'updated_segment_{}'.format(tstamp[:-7]), # name is lowered in return val, and does not accept spaces here
+        }
+        resp = self.put('segment/edit', data=data)
+        return resp.get('results')
+
 
     # NB: Commented create and deletes since AdRoll as of now, doesn't
     # seem to have a true "DELETE" in their CRUD
@@ -343,12 +372,11 @@ class TestClient(AdrollClient):
     #     return resp
 
 
-    def get(self, url, headers=None, params=None, data=None):
-        return self._make_request("GET", url, headers=headers, params=params)
+    def get(self, url, headers=None, params=None, data=None, override_api=None):
+        return self._make_request("GET", url, headers=headers, params=params, override_api=override_api)
 
-
-    def post(self, url, headers=None, params=None, data=None):
-        return self._make_request("POST", url, headers=headers, params=params, data=data)
+    def post(self, url, headers=None, params=None, data=None, override_api=None):
+        return self._make_request("POST", url, headers=headers, params=params, data=data, override_api=override_api)
 
     def put(self, url, headers=None, params=None, data=None):
         return self._make_request("PUT", url, headers=headers, params=params, data=data)

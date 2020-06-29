@@ -216,7 +216,20 @@ class TestAdrollBase(unittest.TestCase):
                     return date_stripped
                 except ValueError:
                     try:
-                        date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S.000000Z")
+                        date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S+0000")
                         return date_stripped
                     except ValueError:
-                        raise NotImplementedError
+                        try:
+                            date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S.000000Z")
+                            return date_stripped
+                        except ValueError:
+                            raise NotImplementedError
+
+    def modify_expected_dates(self, expected_records):
+        """datetime values must conform to ISO-8601 or they will be rejected by the gate"""
+        for record in expected_records:
+            for key, value in record.items():
+                if key == 'created_date':
+                    raw_date = self.parse_date(value)
+                    iso_date = dt.strftime(raw_date,  "%Y-%m-%dT%H:%M:%S.000000Z")
+                    record[key] = iso_date
