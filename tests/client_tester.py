@@ -12,8 +12,8 @@ if __name__ == "__main__":
     client = TestClient()
 
     # CHANGE FLAGS HERE TO TEST SPECIFIC FUNCTION TYPES
-    test_creates = True
-    test_updates = False
+    test_creates = False
+    test_updates = True
     test_gets = False
     test_deletes = False
 
@@ -21,11 +21,11 @@ if __name__ == "__main__":
     print_objects = True
 
     objects_to_test = [ # CHANGE TO TEST DESIRED STREAMS 
-        'segments', # GET - DONE | CREATE - DONE
+
     ]
     # 'ads', # GET - DONE | CREATE - DONE | UPDATE - DONE
     # 'ad_groups', # GET - DONE | CREATE - DONE | UPDATE - DONE
-
+    # 'segments', # GET - DONE | CREATE - DONE | UPDATE - DONE
     # 'campaigns', # GET - DONE | CREATE - DONE | UPDATES - DONE
     # 'advertisables', # GET - DONE | CREATE NA (DONT DO THIS ONE)
     # 'ad_reports', GET - DONE | CREATE - N/A

@@ -306,7 +306,7 @@ class TestClient(AdrollClient):
         elif stream == 'campaigns':
             return self.update_campaign(eid)
         elif stream == 'segments':
-            raise NotImplementedError  #return self.create_segment()
+            return self.update_segment(eid)
         elif stream == 'ad_groups':
             return self.update_ad_group(eid)
         else:
@@ -352,6 +352,17 @@ class TestClient(AdrollClient):
         resp = self.put('campaign/edit', data=data)
         return resp.get('results')
 
+    def update_segment(self, eid):
+        tstamp = str(dt.utcnow().timestamp())
+        if eid is None:
+            eid = random.choice(self.get_all_segments()).get('eid')
+        data = {
+            'segment': eid,
+            'name': 'updated_segment_{}'.format(tstamp[:-7]), # name is lowered in return val, and does not accept spaces here
+        }
+        resp = self.put('segment/edit', data=data)
+        return resp.get('results')
+
 
     # NB: Commented create and deletes since AdRoll as of now, doesn't
     # seem to have a true "DELETE" in their CRUD
@@ -363,7 +374,6 @@ class TestClient(AdrollClient):
 
     def get(self, url, headers=None, params=None, data=None, override_api=None):
         return self._make_request("GET", url, headers=headers, params=params, override_api=override_api)
-
 
     def post(self, url, headers=None, params=None, data=None, override_api=None):
         return self._make_request("POST", url, headers=headers, params=params, data=data, override_api=override_api)
