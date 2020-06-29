@@ -17,10 +17,9 @@ class TestAdrollFullReplication(TestAdrollBase):
         """Streams which can currently have new records created in-test."""
         return self.expected_full_table_streams().difference(
             {  # STREAMS THAT DON'T CURRENTLY SUPPORT CREATES
-                'advertisables', 'segments'
+                'advertisables',
             }
         )
-
 
     @staticmethod
     def select_all_streams_and_fields(conn_id, catalogs):
@@ -34,7 +33,6 @@ class TestAdrollFullReplication(TestAdrollBase):
     def setUpClass(cls):
         print("\n\nTEST SETUP\n")
         cls.client = TestClient()
-
 
     @classmethod
     def tearDownClass(cls):
@@ -207,11 +205,19 @@ class TestAdrollFullReplication(TestAdrollBase):
 
                     # verify that the updated records are correctly captured by the 2nd sync
                     expected_updated_records = set(record.get('eid') for record in expected_records_2.get(stream, [])
-                                                   if "UPDATED" in record.get('name'))
+                                                   if "UPDATED" in record.get('name', '').upper())
+                    if stream == 'segments': # Account for 'display name' in segments
+                        expected_updated_records.update(set(record.get('eid') for record in expected_records_2.get(stream, [])
+                                                            if "UPDATED" in record.get('display_name', '').upper()))
                     if expected_updated_records:
                         updated_records_from_sync_2 = set(row.get('data', {}).get('eid')
                                                           for row in second_sync_records.get(stream, []).get('messages', [])
-                                                          if "UPDATED" in row.get('data', {}).get('name'))
+                                                          if "UPDATED" in row.get('data', {}).get('name', '').upper())
+                        if stream == 'segments': # Account for 'display name' in segments
+                            updated_records_from_sync_2.update(set(row.get('data', {}).get('eid')
+                                                                   for row in second_sync_records.get(stream, []).get('messages', [])
+                                                                   if "UPDATED" in row.get('data', {}).get('display_name', '').upper()))
+
                         # check that the updated records are present in the target
                         self.assertEqual(
                             set(), updated_records_from_sync_2.symmetric_difference(expected_updated_records),
@@ -231,9 +237,6 @@ class TestAdrollFullReplication(TestAdrollBase):
 
                         self.assertEqual(expected_record_name, record_name.pop(),
                                          msg="Update was not captured correctly.")
-
-        # TODO Remove when test complete
-        print("\n\n\tTOOD's PRESENT | The test is incomplete\n\n")
 
 
 if __name__ == '__main__':
