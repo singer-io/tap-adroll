@@ -250,7 +250,7 @@ class TestClient(AdrollClient):
         new_segment_id = new_segment_resp.get('segment', {}).get('segment_id')
         assert new_segment_id, "Segment was not created successfully, or the api has changed the return for this create"
         query_params = {
-            'segments': new_segment_id, # 'QUFXJWKZRJGDDPIXDD8SEG',
+            'segments': new_segment_id,
             'adgroup': adgroup_eid,
         }
         added_segment_resp = self.put('adgroup/add_segments', params=query_params).get('results')
@@ -261,10 +261,6 @@ class TestClient(AdrollClient):
         self.SEGMENTS = None # reset to None to get newer segements
         all_segments = self.get_all_segments()
         matching_segments = [segment for segment in all_segments if segment.get('eid') == new_segment_id]
-        if not matching_segments:
-            import pdb; pdb.set_trace()
-        if len(matching_segments) != 1:
-            import pdb; pdb.set_trace()
         assert matching_segments, "Segment was not successfully attached to an adgroup"
         assert len(matching_segments) == 1, "Segment is attached to multiple adgroups"
 
