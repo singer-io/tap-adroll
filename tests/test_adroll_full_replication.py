@@ -9,6 +9,7 @@ import tap_tester.runner      as runner
 from base import TestAdrollBase
 from test_client import TestClient
 
+
 class TestAdrollFullReplication(TestAdrollBase):
     def name(self):
         return "tap_tester_adroll_full_replication"
@@ -16,25 +17,15 @@ class TestAdrollFullReplication(TestAdrollBase):
     def streams_creatable(self):
         """Streams which can currently have new records created in-test."""
         return self.expected_full_table_streams().difference(
-            {  # STREAMS THAT DON'T CURRENTLY SUPPORT CREATES
-                'advertisables', 'segments'
+            {  # FULL TABLE STREAMS THAT DON'T CURRENTLY SUPPORT CREATES
+                'advertisables',
             }
         )
-
-
-    @staticmethod
-    def select_all_streams_and_fields(conn_id, catalogs):
-        """Select all streams and all fields within streams"""
-        for catalog in catalogs:
-            schema = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])
-
-            connections.select_catalog_and_fields_via_metadata(conn_id, catalog, schema)
 
     @classmethod
     def setUpClass(cls):
         print("\n\nTEST SETUP\n")
         cls.client = TestClient()
-
 
     @classmethod
     def tearDownClass(cls):
@@ -92,13 +83,13 @@ class TestAdrollFullReplication(TestAdrollBase):
         exit_status = menagerie.get_exit_status(conn_id, check_job_name)
         menagerie.verify_check_exit_status(self, exit_status, check_job_name)
 
-        # Select all streams and no fields within streams
+        # Select all full table streams and no fields within streams
         found_catalogs = menagerie.get_catalogs(conn_id)
         full_streams = {key for key, value in self.expected_replication_method().items()
                         if value == self.FULL}
         our_catalogs = [catalog for catalog in found_catalogs if
                         catalog.get('tap_stream_id') in full_streams]
-        self.select_all_streams_and_fields(conn_id, our_catalogs)
+        self.select_all_streams_and_fields(conn_id, our_catalogs, select_all_fields=True)
 
         # Run a sync job using orchestrator
         first_sync_record_count = self.run_sync(conn_id)
@@ -207,11 +198,19 @@ class TestAdrollFullReplication(TestAdrollBase):
 
                     # verify that the updated records are correctly captured by the 2nd sync
                     expected_updated_records = set(record.get('eid') for record in expected_records_2.get(stream, [])
-                                                   if "UPDATED" in record.get('name'))
+                                                   if "UPDATED" in record.get('name', '').upper())
+                    if stream == 'segments': # Account for 'display name' in segments
+                        expected_updated_records.update(set(record.get('eid') for record in expected_records_2.get(stream, [])
+                                                            if "UPDATED" in record.get('display_name', '').upper()))
                     if expected_updated_records:
                         updated_records_from_sync_2 = set(row.get('data', {}).get('eid')
                                                           for row in second_sync_records.get(stream, []).get('messages', [])
-                                                          if "UPDATED" in row.get('data', {}).get('name'))
+                                                          if "UPDATED" in row.get('data', {}).get('name', '').upper())
+                        if stream == 'segments': # Account for 'display name' in segments
+                            updated_records_from_sync_2.update(set(row.get('data', {}).get('eid')
+                                                                   for row in second_sync_records.get(stream, []).get('messages', [])
+                                                                   if "UPDATED" in row.get('data', {}).get('display_name', '').upper()))
+
                         # check that the updated records are present in the target
                         self.assertEqual(
                             set(), updated_records_from_sync_2.symmetric_difference(expected_updated_records),
@@ -231,9 +230,6 @@ class TestAdrollFullReplication(TestAdrollBase):
 
                         self.assertEqual(expected_record_name, record_name.pop(),
                                          msg="Update was not captured correctly.")
-
-        # TODO Remove when test complete
-        print("\n\n\tTOOD's PRESENT | The test is incomplete\n\n")
 
 
 if __name__ == '__main__':

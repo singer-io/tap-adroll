@@ -1,7 +1,6 @@
 import os
 import unittest
 import json
-
 from datetime import datetime as dt
 from datetime import timedelta
 
@@ -143,11 +142,22 @@ class TestAdrollBase(unittest.TestCase):
         return dictionary with key of table name and
         value is set of foreign keys
         """
-        return {  # TODO add foreign keys if found
+        # NOTE: Foreign keys decided not a requirement to be autoamtic
+        return {
             "advertiseables": set(),
             "ads": set(),
-            "advertiseables": set()
+            'ad_groups': set(),
+            'ad_reports': set(),
+            'campaigns': set(),
+            'segments': set()
         }
+
+    def expected_automatic_fields(self):
+        fks = self.expected_foreign_keys()
+        pks = self.expected_primary_keys()
+
+        return {stream: fks.get(stream, set()) | pks.get(stream, set())
+                for stream in self.expected_streams()}
 
     def select_all_streams_and_fields(self, conn_id, catalogs, select_all_fields: bool = True, exclude_streams=[]):
         """Select all streams and all fields within streams"""
@@ -216,7 +226,20 @@ class TestAdrollBase(unittest.TestCase):
                     return date_stripped
                 except ValueError:
                     try:
-                        date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S.000000Z")
+                        date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S+0000")
                         return date_stripped
                     except ValueError:
-                        raise NotImplementedError
+                        try:
+                            date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S.000000Z")
+                            return date_stripped
+                        except ValueError:
+                            raise NotImplementedError
+
+    def modify_expected_dates(self, expected_records):
+        """datetime values must conform to ISO-8601 or they will be rejected by the gate"""
+        for record in expected_records:
+            for key, value in record.items():
+                if key == 'created_date':
+                    raw_date = self.parse_date(value)
+                    iso_date = dt.strftime(raw_date,  "%Y-%m-%dT%H:%M:%S.000000Z")
+                    record[key] = iso_date

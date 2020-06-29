@@ -18,14 +18,6 @@ class TestAdrollIncrementalReplication(TestAdrollBase):
     def name(self):
         return "tap_tester_adroll_incremental_replication"
 
-    @staticmethod
-    def select_all_streams_and_fields(conn_id, catalogs):
-        """Select all streams and all fields within streams"""
-        for catalog in catalogs:
-            schema = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])
-
-            connections.select_catalog_and_fields_via_metadata(conn_id, catalog, schema)
-
     def run_sync(self, conn_id):
         """
         Run a sync job and make sure it exited properly.
@@ -44,27 +36,15 @@ class TestAdrollIncrementalReplication(TestAdrollBase):
             self, conn_id, self.expected_streams(), self.expected_primary_keys())
         return sync_record_count
 
+    @classmethod
+    def setUpClass(cls):
+        print("\n\nTEST SETUP\n")
+        cls.client = TestClient()
 
-    def setUp(self):
-        pass
+    @classmethod
+    def tearDownClass(cls):
+        print("\n\nTEST TEARDOWN\n\n")
 
-    def tearDown(self):
-        pass
-
-    def parse_date(self, date_value):
-        try:
-            date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%SZ")
-            return date_stripped
-        except ValueError:
-            try:
-                date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S+0000Z")
-                return date_stripped
-            except ValueError:
-                try:
-                    date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S.000000Z")
-                    return date_stripped
-                except ValueError:
-                    raise NotImplementedError
 
     def test_run(self):
         """
@@ -83,6 +63,10 @@ class TestAdrollIncrementalReplication(TestAdrollBase):
         self.START_DATE = self.REPORTS_START_DATE  # ad_reports dating back to 2016
         self.END_DATE = self.REPORTS_END_DATE
 
+        ########################################################################################
+        ### AD REPORTS RELY ON A STATIC DATA SET WHICH LIMITS THE DEPTH OF TESTING FOR BOOKMARKS
+        ########################################################################################
+
         # Instantiate connection with non-default start/end dates
         conn_id = connections.ensure_connection(self, original_properties=False)
 
@@ -93,12 +77,12 @@ class TestAdrollIncrementalReplication(TestAdrollBase):
         exit_status = menagerie.get_exit_status(conn_id, check_job_name)
         menagerie.verify_check_exit_status(self, exit_status, check_job_name)
 
-        # Select all streams and no fields within streams # TODO this contradicts method at top of file
+        # Select all incremental streams and all fields within streams
         found_catalogs = menagerie.get_catalogs(conn_id)
         incremental_streams = self.expected_incremental_streams()
         our_catalogs = [catalog for catalog in found_catalogs if
                         catalog.get('tap_stream_id') in incremental_streams]
-        self.select_all_streams_and_fields(conn_id, our_catalogs)
+        self.select_all_streams_and_fields(conn_id, our_catalogs, select_all_fields=True)
 
         # Run a sync job using orchestrator
         first_sync_record_count = self.run_sync(conn_id)
