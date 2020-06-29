@@ -20,7 +20,7 @@ class TestAdrollAllFields(TestAdrollBase):
 
     def testable_streams(self):
         return set(self.expected_streams()).difference(
-            {'ad_reports','segments'} # STREAMS THAT CANNOT CURRENTLY BE TESTED
+            {'ad_reports'} # STREAMS THAT CANNOT CURRENTLY BE TESTED
         )
 
     @classmethod
@@ -51,6 +51,11 @@ class TestAdrollAllFields(TestAdrollBase):
             else:
                print("Data does not exist for stream: {}".format(stream))
                assert None, "more test functinality needed"
+
+        # modify data set to conform to expectations (json standards)
+        for stream, records in expected_records.items():
+            print("Ensuring expected data for {} has datetime objects formatted correctly.".format(stream))
+            self.modify_expected_dates(records)
 
         # Instantiate connection with default start/end dates
         conn_id = connections.ensure_connection(self)
@@ -117,8 +122,11 @@ class TestAdrollAllFields(TestAdrollBase):
             with self.subTest(stream=stream):
                 data = synced_records.get(stream)
                 record_messages_keys = [set(row['data'].keys()) for row in data['messages']]
-                expected_keys = expected_records.get(stream)[0].keys()
-
+                expected_keys = list(expected_records.get(stream)[0].keys())
+                if stream == 'segments': # Ensure all keys accounted for
+                    for record in expected_records.get(stream):
+                        keys = record.keys()
+                        expected_keys += [key for key in keys if key not in expected_keys]
 
                 # Verify schema covers all fields
                 schema_keys = set(self.expected_schema_keys(stream))
@@ -132,11 +140,12 @@ class TestAdrollAllFields(TestAdrollBase):
                 if schema_keys.difference(set(expected_keys)):
                     print("WARNING Fields missing from expectations: {}".format(schema_keys.difference(set(expected_keys))))
 
-                # Verify that all fields are sent to the target
+                # Verify that all fields sent to the target fall into the expected schema
                 for actual_keys in record_messages_keys:
-                    self.assertEqual(
-                        actual_keys.symmetric_difference(schema_keys), set(),
-                        msg="Expected all fields, as defined by schemas/{}.json".format(stream))
+                    self.assertTrue(
+                        actual_keys.issubset(schema_keys),
+                        msg="Expected all fields to be present, as defined by schemas/{}.json".format(stream) +
+                        "EXPECTED (SCHEMA): {}\nACTUAL (REPLICATED KEYS): {}".format(schema_keys, actual_keys))
 
                 actual_records = [row['data'] for row in data['messages']]
 
@@ -148,14 +157,26 @@ class TestAdrollAllFields(TestAdrollBase):
 
                 # verify by values, that we replicated the expected records
                 for actual_record in actual_records:
+                    if not actual_record in expected_records.get(stream):
+                        print("DATA DISCREPANCY")
+                        print("Actual: {}".format(actual_record))
+                        e_record = [record for record in expected_records.get(stream)
+                                    if actual_record.get('eid') == record.get('eid')]
+                        print("Expected: {}".format(e_record))
                     self.assertTrue(actual_record in expected_records.get(stream),
-                                    msg="Actual record missing from expectations")
-                for expected_record in expected_records.get(stream):
-                    self.assertTrue(expected_record in actual_records,
-                                    msg="Expected record missing from target.")
+                                    msg="Actual record missing from expectations.\n" +
+                                    "ACTUAL {}".format(actual_record))
 
-        # TODO Remove when test complete
-        print("\n\n\tTOOD's PRESENT | The test is incomplete\n\n")
+                for expected_record in expected_records.get(stream):
+                    if not expected_record in actual_records:
+                        print("DATA DISCREPANCY")
+                        print("Expected: {}".format(expected_record))
+                        a_record = [record for record in actual_records
+                                    if expected_record.get('eid') == record.get('eid')]
+                        print("Actual: {}".format(a_record))
+                    self.assertTrue(expected_record in actual_records,
+                                    msg="Expected record missing from target.\n" +
+                                    "EXPECTED {}".format(expected_record))
 
 
 if __name__ == '__main__':
