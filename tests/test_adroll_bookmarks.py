@@ -18,14 +18,6 @@ class TestAdrollIncrementalReplication(TestAdrollBase):
     def name(self):
         return "tap_tester_adroll_incremental_replication"
 
-    @staticmethod
-    def select_all_streams_and_fields(conn_id, catalogs):
-        """Select all streams and all fields within streams"""
-        for catalog in catalogs:
-            schema = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])
-
-            connections.select_catalog_and_fields_via_metadata(conn_id, catalog, schema)
-
     def run_sync(self, conn_id):
         """
         Run a sync job and make sure it exited properly.
