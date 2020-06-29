@@ -168,9 +168,6 @@ class TestAdrollAutomaticFields(TestAdrollBase):
                     self.assertTrue(expected_record in actual_records,
                                     msg="Expected record missing from target.")
 
-        # TODO Remove when test complete
-        print("\n\n\tTOOD's PRESENT | The test is incomplete\n\n")
-
 
 if __name__ == '__main__':
     unittest.main()
