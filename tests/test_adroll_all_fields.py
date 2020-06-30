@@ -54,8 +54,8 @@ class TestAdrollAllFields(TestAdrollBase):
 
         # modify data set to conform to expectations (json standards)
         for stream, records in expected_records.items():
-            print("Ensuring expected data for {} has datetime objects formatted correctly.".format(stream))
-            self.modify_expected_dates(records)
+            print("Ensuring expected data for {} has values formatted correctly.".format(stream))
+            self.modify_expected_datatypes(records)
 
         # Instantiate connection with default start/end dates
         conn_id = connections.ensure_connection(self)
@@ -159,6 +159,9 @@ class TestAdrollAllFields(TestAdrollBase):
                 # BUG | TODO link False != None bug here
                 skip = False  # WORKAROUND
                 for actual_record in actual_records:
+                    # Array data types need sorted for a proper comparison
+                    for key, value in actual_record.items():
+                        self.sort_array_type(actual_record, key, value)
                     if not actual_record in expected_records.get(stream):
                         print("\nDATA DISCREPANCY STREAM: {}".format(stream))
                         print("Actual: {}".format(actual_record))
