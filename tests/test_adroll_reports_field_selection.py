@@ -56,8 +56,8 @@ class TestAdrollReportsFieldSelection(TestAdrollBase):
         self.START_DATE = self.timedelta_formatted(self.REPORTS_START_DATE, -1)
         self.END_DATE = self.REPORTS_END_DATE
         print("INCREMENTAL STREAMS RELY ON A STATIC DATA SET. SO WE TEST WITH:\n" +
-              "  START DATE 1 | {}\n".format(self.START_DATE) +
-              "  END DATE 2 | {}".format(self.END_DATE))
+              "  START DATE | {}\n".format(self.START_DATE) +
+              "  END DATE | {}".format(self.END_DATE))
 
         # ensure data exists for sync streams and set expectations
         expected_records_all = {x: [] for x in self.expected_streams()} # all fields selected
@@ -75,6 +75,12 @@ class TestAdrollReportsFieldSelection(TestAdrollBase):
                     {field: obj.get(field)
                      for field in self.expected_automatic_fields().get(stream)}
                 )
+
+        reports =expected_records_all.get('ad_reports')
+        my_reports = [report for report in reports if report.get('eid') == self.client.ADVERTISABLE_EID]
+        if len(my_reports) > 1:
+            for report in my_reports:
+                print("STATIC ADVERTISABLE HAS A REPORT: \n{}".format(report))
 
         # format expected data to match expected output of tap
         self.format_expected_data(expected_records_all)
@@ -246,12 +252,12 @@ class TestAdrollReportsFieldSelection(TestAdrollBase):
                 if schema_keys.difference(set(expected_keys)):
                     print("WARNING Fields missing from expectations: {}".format(schema_keys.difference(set(expected_keys))))
 
-                # Verify that all fields are sent to the target
+                # Verify that all fields sent to the target fall into the expected schema
                 for actual_keys in record_messages_keys:
-                    self.assertEqual(
-                        actual_keys.symmetric_difference(schema_keys), set(),
-                        msg="Expected all fields, as defined by schemas/{}.json".format(stream)
-                    )
+                    self.assertTrue(
+                        actual_keys.issubset(schema_keys),
+                        msg="Expected all fields to be present, as defined by schemas/{}.json".format(stream) +
+                        "EXPECTED (SCHEMA): {}\nACTUAL (REPLICATED KEYS): {}".format(schema_keys, actual_keys))
 
                 actual_records = [row['data'] for row in data['messages']]
                 expected_records = expected_records_all.get(stream)
@@ -272,10 +278,23 @@ class TestAdrollReportsFieldSelection(TestAdrollBase):
 
                 # verify by values, that we replicated the expected records
                 for actual_record in actual_records:
+                    if actual_record not in expected_records:
+                        print("\nDATA DISCREPANCY STREAM: {}".format(stream))
+                        print("Actual: {}".format(actual_record))
+                        e_record = [record for record in expected_records.get(stream)
+                                    if actual_record.get('eid') == record.get('eid')]
+                        print("Expected: {}".format(e_record))
+                        for key in schema_keys:
+                            e_val = e_record[0].get(key)
+                            val = actual_record.get(key)
+                            if e_val != val:
+                                print("\nDISCREPANCEY | KEY {}: ACTUAL: {} EXPECTED {}".format(key, val, e_val))
                     self.assertTrue(actual_record in expected_records,
                                     msg="Actual record missing from expectations\n" +
                                     "Actual Record: {}".format(actual_record))
                 for expected_record in expected_records:
+                    if expected_record not in actual_records:
+                        print("EXPECTED RECORD MISSING FROM SYNC: \n{}\n".format(expected_record))
                     self.assertTrue(expected_record in actual_records,
                                     msg="Expected record missing from target." +
                                     "Expected Record: {}".format(expected_record))
@@ -313,13 +332,18 @@ class TestAdrollReportsFieldSelection(TestAdrollBase):
 
                 # verify by values, that we replicated the expected records
                 for actual_record in actual_records:
+                    if actual_record not in expected_records:
+                        print("RECORD MISSING FROM EXPECTATIONS: \n{}\n".format(actual_record))
                     self.assertTrue(actual_record in expected_records,
                                     msg="Actual record missing from expectations\n" +
                                     "Actual Record: {}".format(actual_record))
                 for expected_record in expected_records:
+                    if expected_record not in actual_records:
+                        print("EXPECTED RECORD MISSING FROM SYNC: \n{}\n".format(expected_record))
                     self.assertTrue(expected_record in actual_records,
                                     msg="Expected record missing from target." +
                                     "Expected Record: {}".format(expected_record))
+
 
 
 if __name__ == '__main__':

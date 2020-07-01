@@ -156,7 +156,7 @@ class TestAdrollAllFields(TestAdrollBase):
                                  "We probably have duplicate records.")
 
                 # verify by values, that we replicated the expected records
-                # BUG | TODO link False != None bug here
+                # BUG | https://stitchdata.atlassian.net/browse/SRCE-3470
                 skip = False  # WORKAROUND
                 for actual_record in actual_records:
                     # Array data types need sorted for a proper comparison
