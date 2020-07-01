@@ -59,8 +59,11 @@ class AdrollClient():
                           (requests.exceptions.HTTPError),
                           max_tries=3,
                           interval=10)
-    def _make_request(self, method, endpoint, headers=None, params=None, data=None):
+    def _make_request(self, method, endpoint, headers=None, params=None, data=None, override_api=None):
         full_url = ENDPOINT_BASE + endpoint
+        if override_api:
+            full_url = full_url.replace('api', override_api)
+
         LOGGER.info(
             "%s - Making request to %s endpoint %s, with params %s",
             full_url,
