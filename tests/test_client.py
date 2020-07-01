@@ -351,11 +351,19 @@ class TestClient(AdrollClient):
     def update_segment(self, eid):
         tstamp = str(dt.utcnow().timestamp())
         if eid is None:
-            eid = random.choice(self.get_all_segments()).get('eid')
+            segment = random.choice(self.get_all_segments())
+            eid = segment.get('eid')
+            name = segment.get('name', False)
+
         data = {
             'segment': eid,
             'name': 'updated_segment_{}'.format(tstamp[:-7]), # name is lowered in return val, and does not accept spaces here
         }
+
+        if not name:
+            data['display_name'] = data.get('name')
+            del data['name']
+
         resp = self.put('segment/edit', data=data)
         return resp.get('results')
 
