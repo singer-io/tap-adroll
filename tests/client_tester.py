@@ -21,11 +21,12 @@ if __name__ == "__main__":
     print_objects = True
 
     objects_to_test = [ # CHANGE TO TEST DESIRED STREAMS 
-        'campaigns', # GET - DONE | CREATE - DONE (werid  RATE LIMIT) | UPDATES - DONE
+
     ]
     # 'ads', # GET - DONE | CREATE - DONE | UPDATE - DONE
     # 'ad_groups', # GET - DONE | CREATE - DONE | UPDATE - DONE
-    # 'segments', # GET - DONE | CREATE - INPROGRESS need to implement audience endpoint jawn
+    # 'segments', # GET - DONE | CREATE - DONE | UPDATE - DONE
+    # 'campaigns', # GET - DONE | CREATE - DONE | UPDATES - DONE
     # 'advertisables', # GET - DONE | CREATE NA (DONT DO THIS ONE)
     # 'ad_reports', GET - DONE | CREATE - N/A
 
@@ -39,7 +40,6 @@ if __name__ == "__main__":
             if existing_obj:
                 print("SUCCESS")
                 if print_objects:
-                    import pdb; pdb.set_trace()
                     print(existing_obj)
                 continue
             print("FAILED")

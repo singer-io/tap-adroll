@@ -5,6 +5,7 @@ import re
 
 from base import TestAdrollBase
 
+
 class TestAdrollDiscovery(TestAdrollBase):
     def name(self):
         return "tap_tester_adroll_discovery"
