@@ -14,7 +14,8 @@
       "type": [
         "null",
         "string"
-      ]
+      ],
+      "format": "date-time"
     },
     "has_pending_edits": {
       "type": [
@@ -44,7 +45,8 @@
       "type": [
         "null",
         "string"
-      ]
+      ],
+      "format": "date-time"
     },
     "src": {
       "type": [
@@ -263,6 +265,18 @@
         "null",
         "string"
       ]
+    },
+    "ad_parameters": {
+      "type": [
+        "null",
+        "array"
+      ],
+      "items": {
+        "type": [
+          "null",
+          "string"
+        ]
+      }
     }
   }
 }
