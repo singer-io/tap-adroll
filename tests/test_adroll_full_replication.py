@@ -9,6 +9,7 @@ import tap_tester.runner      as runner
 from base import TestAdrollBase
 from test_client import TestClient
 
+
 class TestAdrollFullReplication(TestAdrollBase):
     def name(self):
         return "tap_tester_adroll_full_replication"
@@ -16,18 +17,10 @@ class TestAdrollFullReplication(TestAdrollBase):
     def streams_creatable(self):
         """Streams which can currently have new records created in-test."""
         return self.expected_full_table_streams().difference(
-            {  # STREAMS THAT DON'T CURRENTLY SUPPORT CREATES
+            {  # FULL TABLE STREAMS THAT DON'T CURRENTLY SUPPORT CREATES
                 'advertisables',
             }
         )
-
-    @staticmethod
-    def select_all_streams_and_fields(conn_id, catalogs):
-        """Select all streams and all fields within streams"""
-        for catalog in catalogs:
-            schema = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])
-
-            connections.select_catalog_and_fields_via_metadata(conn_id, catalog, schema)
 
     @classmethod
     def setUpClass(cls):
@@ -90,13 +83,13 @@ class TestAdrollFullReplication(TestAdrollBase):
         exit_status = menagerie.get_exit_status(conn_id, check_job_name)
         menagerie.verify_check_exit_status(self, exit_status, check_job_name)
 
-        # Select all streams and no fields within streams
+        # Select all full table streams and no fields within streams
         found_catalogs = menagerie.get_catalogs(conn_id)
         full_streams = {key for key, value in self.expected_replication_method().items()
                         if value == self.FULL}
         our_catalogs = [catalog for catalog in found_catalogs if
                         catalog.get('tap_stream_id') in full_streams]
-        self.select_all_streams_and_fields(conn_id, our_catalogs)
+        self.select_all_streams_and_fields(conn_id, our_catalogs, select_all_fields=True)
 
         # Run a sync job using orchestrator
         first_sync_record_count = self.run_sync(conn_id)

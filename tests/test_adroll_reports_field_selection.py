@@ -35,13 +35,6 @@ class TestAdrollReportsFieldSelection(TestAdrollBase):
     def tearDownClass(cls):
         print("\n\nTEST TEARDOWN\n\n")
 
-    def expected_automatic_fields(self):
-        fks = self.expected_foreign_keys()
-        pks = self.expected_primary_keys()
-
-        return {stream: fks.get(stream, set()) | pks.get(stream, set())
-                for stream in self.expected_streams()}
-
     def format_expected_data(self, records_by_stream):
         """Type the data to match expected tap output"""
         for stream, stream_records in records_by_stream.items():
@@ -263,10 +256,6 @@ class TestAdrollReportsFieldSelection(TestAdrollBase):
                 actual_records = [row['data'] for row in data['messages']]
                 expected_records = expected_records_all.get(stream)
 
-                # NOTES ####################################################################################################
-                # TODO | Verify those 'eid' values are for ads.
-                ############################################################################################################
-
                 # Verify the number of records match expectations
                 self.assertEqual(len(expected_records),
                                  len(actual_records),
@@ -331,9 +320,6 @@ class TestAdrollReportsFieldSelection(TestAdrollBase):
                     self.assertTrue(expected_record in actual_records,
                                     msg="Expected record missing from target." +
                                     "Expected Record: {}".format(expected_record))
-
-        # TODO Remove when test complete
-        print("\n\n\tTOOD's PRESENT | The test is incomplete\n\n")
 
 
 if __name__ == '__main__':

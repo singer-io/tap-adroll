@@ -15,8 +15,8 @@ from test_client import TestClient
 class TestAdrollStartDateFullTable(TestAdrollBase):
     START_DATE = ""
     END_DATE = ""
-    MIDNIGHT_FORMAT = "%Y-%m-%dT00:00:00Z"
-    
+
+
     def name(self):
         return "tap_tester_adroll_start_date_full_table"
 

@@ -24,12 +24,6 @@ class TestAdrollAutomaticFields(TestAdrollBase):
             {'ad_reports',} # STREAMS THAT CANNOT CURRENTLY BE TESTED
         )
 
-    def expected_automatic_fields(self):
-        fks = self.expected_foreign_keys()
-        pks = self.expected_primary_keys()
-
-        return {stream: fks.get(stream, set()) | pks.get(stream, set())
-                for stream in self.expected_streams()}
     @classmethod
     def setUpClass(cls):
         print("\n\nTEST SETUP\n")
