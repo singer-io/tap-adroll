@@ -74,8 +74,7 @@ class AdrollClient():
 
         # TODO: We should merge headers with some default headers like user_agent
         response = self.session.request(method, full_url, headers=headers, params=params, data=data)
-        if response.status_code == 403:
-            print(response.text)
+
         response.raise_for_status()
         # TODO: Check error status, rate limit, etc.
         return response.json()
