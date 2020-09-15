@@ -16,7 +16,7 @@ setup(name='tap-adroll',
       ],
       extras_require={
           'dev': [
-              'pylint',
+              'pylint==2.5.3',
               'ipdb',
               'nose',
           ],
