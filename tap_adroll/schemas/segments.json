@@ -1,5 +1,11 @@
 {
   "properties": {
+    "product": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
     "parent_id": {
       "type": [
         "null",

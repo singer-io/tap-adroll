@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='tap-adroll',
-      version='0.0.1',
+      version='1.0.0',
       description='Singer.io tap for extracting data from Adroll',
       author='Stitch',
       url='https://singer.io',
@@ -16,7 +16,7 @@ setup(name='tap-adroll',
       ],
       extras_require={
           'dev': [
-              'pylint',
+              'pylint==2.5.3',
               'ipdb',
               'nose',
           ],
