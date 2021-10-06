@@ -76,15 +76,14 @@ class AdReports(Stream):
 
         # Configurable end_date used for testing
         if self.config.get('end_date'):
-            now = utils.strptime_to_utc(self.config.get('end_date'))
+            tomorrow = utils.strptime_to_utc(self.config.get('end_date')) + datetime.timedelta(days=1)
         else:
-            now = utils.now()
-        now += datetime.timedelta(days=1) # Go until tomorrow for day-windows
+            tomorrow = utils.now() + datetime.timedelta(days=1)
 
-        while start < now:
+        while start < tomorrow:
             end = start + window_size
-            if end > now:
-                end = now
+            if end > tomorrow:
+                end = tomorrow
             yield start, end
             start = end
 
