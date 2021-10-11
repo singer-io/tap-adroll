@@ -74,11 +74,11 @@ class AdReports(Stream):
 
         end_date = utils.now()
         if self.config.get('end_date'):
-          end_date = utils.strptime_to_utc(self.config.get('end_date'))
+            end_date = utils.strptime_to_utc(self.config.get('end_date'))
 
         while report_date <= end_date:
-          yield report_date
-          report_date += datetime.timedelta(days=1)
+            yield report_date
+            report_date += datetime.timedelta(days=1)
 
     def sync(self):
         advertisables = Advertisables(self.client, self.config, self.state)
