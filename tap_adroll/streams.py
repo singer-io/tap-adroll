@@ -50,7 +50,6 @@ class Ads(Stream):
 
 
     def sync(self):
-        # TODO: Adjust the parent child relationship?
         advertisables = Advertisables(self.client, self.config, self.state)
         for advertisable_eid in advertisables.get_all_advertisable_eids():
             records = self.client.get(self.endpoint, params={
@@ -71,46 +70,36 @@ class AdReports(Stream):
 
     def generate_daily_date_windows(self):
         bookmark = singer.bookmarks.get_bookmark(self.state, self.stream_name, self.replication_keys[0])
-        start = utils.strptime_to_utc(bookmark or self.config['start_date'])
-        window_size = datetime.timedelta(days=1)
+        report_date = utils.strptime_to_utc(bookmark or self.config['start_date'])
 
-        # Configurable end_date used for testing
+        end_date = utils.now()
         if self.config.get('end_date'):
-            tomorrow = utils.strptime_to_utc(self.config.get('end_date')) + datetime.timedelta(days=1)
-        else:
-            tomorrow = utils.now() + datetime.timedelta(days=1)
+          end_date = utils.strptime_to_utc(self.config.get('end_date'))
 
-        while start < tomorrow:
-            end = start + window_size
-            if end > tomorrow:
-                end = tomorrow
-            yield start, end
-            start = end
-
+        while report_date <= end_date:
+          yield report_date
+          report_date += datetime.timedelta(days=1)
 
     def sync(self):
-        # TODO: Adjust the parent child relationship?
         advertisables = Advertisables(self.client, self.config, self.state)
-
         # Daily Pagination writes a bookmark after each day
-        for start_date, end_date in self.generate_daily_date_windows():
-            request_start = datetime.datetime.strftime(start_date, "%m-%d-%Y")
-            request_end = datetime.datetime.strftime(end_date, "%m-%d-%Y")
+        for report_date in self.generate_daily_date_windows():
+            request_date = datetime.datetime.strftime(report_date, "%m-%d-%Y")
             for advertisable_eid in advertisables.get_all_advertisable_eids():
                 LOGGER.info("Syncing %s for advertisable %s between %s and %s", self.stream_id,
-                            advertisable_eid, request_start, request_end)
+                            advertisable_eid, report_date, report_date)
                 records = self.client.get(self.endpoint, params={
                     'advertisable': advertisable_eid,
                     'data_format': 'entity',
-                    'start_date': request_start,
-                    'end_date': request_end,
+                    'start_date': request_date,
+                    'end_date': request_date,
                 })
                 for rec in records.get('results'):
-                    rec['date'] = utils.strftime(start_date)
+                    rec['date'] = utils.strftime(report_date)
                     yield rec
 
             # Write bookmark after syncing all Advertisables for the day
-            singer.bookmarks.write_bookmark(self.state, self.stream_name, self.replication_keys[0], utils.strftime(start_date))
+            singer.bookmarks.write_bookmark(self.state, self.stream_name, self.replication_keys[0], utils.strftime(report_date))
             singer.write_state(self.state)
 
 
@@ -126,7 +115,6 @@ class Segments(Stream):
 
 
     def sync(self):
-        # TODO: Adjust the parent child relationship?
         advertisables = Advertisables(self.client, self.config, self.state)
         for advertisable_eid in advertisables.get_all_advertisable_eids():
             records = self.client.get(self.endpoint, params={
