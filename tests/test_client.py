@@ -101,17 +101,18 @@ class TestClient(AdrollClient):
             advertisables = self.get_all_advertisables()
             adv_ids = [adv.get('eid') for adv in advertisables]
 
-            days = (end_date - start_date).days + 1
+            days = (end_date - start_date).days + 1 #Inclusive of end and start
+
             for d in range(days):
 
                 for adv in adv_ids:
                     start = start_date + timedelta( days = d )
-                    end = start + timedelta( days = 1 )
-                    assert end <= end_date + timedelta( days = 1 ), "TEST IMPLEMENTATION ERROR"
+                    if start > end_date:
+                        raise RuntimeError(f"TEST IMPLEMENTATION ERROR: start {start} is not <= end {end_date}")
                     query_params = {'advertisable': adv,
                                     'data_format': 'entity',
                                     'start_date': dt.strftime(start, "%m-%d-%Y"),
-                                    'end_date': dt.strftime(end, "%m-%d-%Y")}
+                                    'end_date': dt.strftime(start, "%m-%d-%Y")}
                     records = self.get('report/ad', params=query_params).get('results')
                     for rec in records:
                         rec['date'] = dt.strftime(start, "%Y-%m-%dT00:00:00.000000Z")

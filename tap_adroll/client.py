@@ -28,11 +28,13 @@ class AdrollClient():
             'client_secret': config['client_secret']
         }
         self.config_path = config_path
+        self.access_token = config['access_token']
         self.session = OAuth2Session(config['client_id'],
                                      token=token,
-                                     auto_refresh_url=TOKEN_REFRESH_URL,
-                                     auto_refresh_kwargs=extra,
-                                     token_updater=self._write_config)
+        #                             auto_refresh_url=TOKEN_REFRESH_URL,
+        #                             auto_refresh_kwargs=extra,
+        #                             token_updater=self._write_config)
+                                     )
         try:
             # Make an authenticated request after creating the object to any endpoint
             org = self.get('organization/get').get('results', {}).get('eid')
@@ -73,10 +75,11 @@ class AdrollClient():
         )
 
         # TODO: We should merge headers with some default headers like user_agent
-        response = self.session.request(method, full_url, headers=headers, params=params, data=data)
+        headers = headers or {}
+        headers['Authorization'] = f"Bearer {self.access_token}"
+        response = requests.request(method, full_url, headers=headers, params=params, data=data)
 
         response.raise_for_status()
-        # TODO: Check error status, rate limit, etc.
         return response.json()
 
     def get(self, url, headers=None, params=None):
