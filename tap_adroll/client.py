@@ -23,10 +23,10 @@ class AdrollClient():
             # Set expires_in to a negative number to force the client to reauthenticate
             'expires_in': '-30'
         }
-        extra = {
-            'client_id': config['client_id'],
-            'client_secret': config['client_secret']
-        }
+        #extra = {
+            #'client_id': config['client_id'],
+            #'client_secret': config['client_secret']
+        #}
         self.config_path = config_path
         self.access_token = config['access_token']
         self.session = OAuth2Session(config['client_id'],
