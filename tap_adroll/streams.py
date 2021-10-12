@@ -86,8 +86,8 @@ class AdReports(Stream):
         for report_date in self.generate_daily_date_windows():
             request_date = datetime.datetime.strftime(report_date, "%m-%d-%Y")
             for advertisable_eid in advertisables.get_all_advertisable_eids():
-                LOGGER.info("Syncing %s for advertisable %s between %s and %s", self.stream_id,
-                            advertisable_eid, report_date, report_date)
+                LOGGER.info("Syncing %s for advertisable %s for date %s", self.stream_id,
+                            advertisable_eid, report_date)
                 records = self.client.get(self.endpoint, params={
                     'advertisable': advertisable_eid,
                     'data_format': 'entity',
