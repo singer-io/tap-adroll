@@ -30,10 +30,10 @@ class AdrollClient():
         self.config_path = config_path
         self.access_token = config['access_token']
         self.session = OAuth2Session(config['client_id'],
-                                     token=token,
-        #                             auto_refresh_url=TOKEN_REFRESH_URL,
-        #                             auto_refresh_kwargs=extra,
-        #                             token_updater=self._write_config)
+                                     token=token
+                                     # auto_refresh_url=TOKEN_REFRESH_URL,
+                                     # auto_refresh_kwargs=extra,
+                                     # token_updater=self._write_config)
                                      )
         try:
             # Make an authenticated request after creating the object to any endpoint
