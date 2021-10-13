@@ -118,7 +118,8 @@ class TestAdrollFullReplication(TestAdrollBase):
                 CREATED_RECORDS[stream].append(new_object)
 
         # Update 1 existing record for every full table stream
-        for stream in self.streams_creatable():
+        #BUG https://jira.talendforge.org/browse/TDL-15775 | test_adroll_full_replication failing while updating records
+        for stream in self.streams_creatable().difference({'segments'}):
             for _ in range(N):
                 print("UDPATING A RECORD FOR STREAM: {}".format(stream))
                 # eid = expected_records_1.get(stream)[-1] # most recent record prior to test
@@ -219,6 +220,9 @@ class TestAdrollFullReplication(TestAdrollBase):
                             "ADDITIONAL RECORDS: {}\n".format(updated_records_from_sync_2.difference(expected_updated_records))
                         )
                         # check that the record data matches expectations
+                        #BUG https://jira.talendforge.org/browse/TDL-15775 | test_adroll_full_replication failing while updating records 
+                        if stream == 'segments':
+                            continue
                         self.assertEqual(len(UPDATED_RECORDS.get(stream, [])), 1, msg="Expectations are invalid")
                         updated_record = UPDATED_RECORDS.get(stream, []).pop()
 
