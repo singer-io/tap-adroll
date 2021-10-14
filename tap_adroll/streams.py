@@ -73,11 +73,11 @@ class AdReports(Stream):
         lookback_window = datetime.timedelta(days=int(self.config.get('lookback_window') or 7))
         report_date = min(utils.strptime_to_utc(bookmark or self.config['start_date']),
                           utils.now() - lookback_window)
-        
+
         end_date = utils.now()
         if self.config.get('end_date'):
             end_date = utils.strptime_to_utc(self.config.get('end_date'))
-            
+
         if report_date > end_date:
             LOGGER.warning("Calculated report_date {} is greather than end_date {}; no reports will be retrieved.",
                            datetime.datetime.strftime(report_date, "%Y-%m-%d"),
