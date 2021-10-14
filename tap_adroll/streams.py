@@ -30,6 +30,8 @@ class Advertisables(Stream):
         else:
             records = self.client.get(self.endpoint)
             for rec in records.get('results'):
+                import ipdb; ipdb.set_trace() #SET BREAKPOINT FOR VALIDATING NEW FIELD business_badges_tos
+                1+1
                 Advertisables.advertisable_eids.append(rec['eid'])
                 yield rec['eid']
 
@@ -70,11 +72,18 @@ class AdReports(Stream):
 
     def generate_daily_date_windows(self):
         bookmark = singer.bookmarks.get_bookmark(self.state, self.stream_name, self.replication_keys[0])
-        report_date = utils.strptime_to_utc(bookmark or self.config['start_date'])
-
+        lookback_window = datetime.timedelta(days=int(self.config.get('lookback_window') or 7))
+        report_date = min(utils.strptime_to_utc(bookmark or self.config['start_date']),
+                          utils.now() - lookback_window)
+        
         end_date = utils.now()
         if self.config.get('end_date'):
             end_date = utils.strptime_to_utc(self.config.get('end_date'))
+            
+        if report_date > end_date:
+            LOGGER.warning("Calculated report_date {} is greather than end_date {}; no reports will be retrieved.",
+                           datetime.datetime.strftime(report_date, "%Y-%m-%d"),
+                           datetime.datetime.strftime(end_date, "%Y-%m-%d"))
 
         while report_date <= end_date:
             yield report_date
