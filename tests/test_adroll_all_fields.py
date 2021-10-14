@@ -47,6 +47,9 @@ class TestAdrollAllFields(TestAdrollBase):
             if existing_objects:
                 print("Data exists for stream: {}".format(stream))
                 for obj in existing_objects:
+                    # BUG | https://jira.talendforge.org/browse/TDL-15773 [tap-adroll] Schema validation tests fail because of newly included fields
+                    if stream == 'advertisables':
+                        del obj['business_badges_tos']
                     expected_records[stream].append(obj)
             else:
                print("Data does not exist for stream: {}".format(stream))
@@ -132,9 +135,6 @@ class TestAdrollAllFields(TestAdrollBase):
                 schema_keys = set(self.expected_schema_keys(stream))
                 # BUG | https://stitchdata.atlassian.net/browse/SRCE-3423
 
-                # BUG | https://jira.talendforge.org/browse/TDL-15773 [tap-adroll] Schema validation tests fail because of newly included fields
-                if stream == 'advertisables':
-                    continue #Skipping failing assertions re: 15773
 
                 self.assertEqual( set(), set(expected_keys).difference(schema_keys),
                     msg="\nFields missing from schema: {}\n".format(set(expected_keys).difference(schema_keys))

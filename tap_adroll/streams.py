@@ -30,8 +30,6 @@ class Advertisables(Stream):
         else:
             records = self.client.get(self.endpoint)
             for rec in records.get('results'):
-                import ipdb; ipdb.set_trace() #SET BREAKPOINT FOR VALIDATING NEW FIELD business_badges_tos
-                1+1
                 Advertisables.advertisable_eids.append(rec['eid'])
                 yield rec['eid']
 
