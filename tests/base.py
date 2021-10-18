@@ -50,6 +50,9 @@ class TestAdrollBase(unittest.TestCase):
             'start_date' : dt.strftime(dt.utcnow()-timedelta(days=5), self.START_DATE_FORMAT),
             'end_date' : dt.strftime(dt.utcnow(), self.START_DATE_FORMAT)
         }
+        if self.LOOKBACK_WINDOW:
+            return_value["lookback_window"] = self.LOOKBACK_WINDOW
+
         if original:
             return return_value
 
@@ -124,6 +127,9 @@ class TestAdrollBase(unittest.TestCase):
     def expected_full_table_streams(self):
         return set(stream for stream, rep_meth in self.expected_replication_method().items()
                    if rep_meth == self.FULL)
+
+    def expected_lookback_streams(self):
+        return {"ad_reports"}
 
     def expected_streams(self):
         """A set of expected stream names"""
