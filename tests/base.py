@@ -50,7 +50,7 @@ class TestAdrollBase(unittest.TestCase):
             'start_date' : dt.strftime(dt.utcnow()-timedelta(days=5), self.START_DATE_FORMAT),
             'end_date' : dt.strftime(dt.utcnow(), self.START_DATE_FORMAT)
         }
-        if self.LOOKBACK_WINDOW:
+        if hasattr(self, "LOOKBACK_WINDOW") and self.LOOKBACK_WINDOW:
             return_value["lookback_window"] = self.LOOKBACK_WINDOW
 
         if original:
