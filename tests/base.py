@@ -22,6 +22,7 @@ class TestAdrollBase(unittest.TestCase):
     START_DATE_FORMAT = "%Y-%m-%dT00:00:00Z" # %H:%M:%SZ
     REPORTS_START_DATE = "2016-06-02T00:00:00Z" # test data for ad_reports is static
     REPORTS_END_DATE = "2016-06-06T00:00:00Z"
+    LOOKBACK_WINDOW = None
 
     def setUp(self):
         missing_envs = [x for x in [
@@ -50,7 +51,7 @@ class TestAdrollBase(unittest.TestCase):
             'start_date' : dt.strftime(dt.utcnow()-timedelta(days=5), self.START_DATE_FORMAT),
             'end_date' : dt.strftime(dt.utcnow(), self.START_DATE_FORMAT)
         }
-        if hasattr(self, "LOOKBACK_WINDOW") and self.LOOKBACK_WINDOW:
+        if self.LOOKBACK_WINDOW:
             return_value["lookback_window"] = self.LOOKBACK_WINDOW
 
         if original:
