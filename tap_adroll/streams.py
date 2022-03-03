@@ -101,6 +101,7 @@ class AdReports(Stream):
                     'data_format': 'entity',
                     'start_date': request_date,
                     'end_date': request_date,
+                    'currency': 'EUR'
                 })
                 for rec in records.get('results'):
                     rec['date'] = datetime.datetime.strftime(report_date, "%Y-%m-%dT00:00:00.000000Z")
