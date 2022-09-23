@@ -22,12 +22,12 @@ class AdrollClient():
     def authenticate_request(self):
         if self.dev_mode :
             self.session = requests.Session()
-            read_config = self._read_config(self.config_path)
+            read_config = self._read_config()
             try :
-                self._access_token = read_config['access_token'] 
+                self._access_token = read_config['access_token']
             except KeyError as _:
                 LOGGER.fatal("Unable to locate key %s in config",_)
-                raise Exception("Unable to locate key in config") 
+                raise Exception("Unable to locate key in config")
         else :
             token = {
                 'access_token': self.config['access_token'],
@@ -41,10 +41,10 @@ class AdrollClient():
                 'client_secret': self.config['client_secret']
             }
             self.session = OAuth2Session(self.config['client_id'],
-                                        token=token,
-                                        auto_refresh_url=TOKEN_REFRESH_URL,
-                                        auto_refresh_kwargs=extra,
-                                        token_updater=self._write_config)
+                                         token=token,
+                                         auto_refresh_url=TOKEN_REFRESH_URL,
+                                         auto_refresh_kwargs=extra,
+                                         token_updater=self._write_config)
         try:
             # Make an authenticated request after creating the object to any endpoint
             org = self.get('organization/get').get('results', {}).get('eid')
@@ -53,13 +53,13 @@ class AdrollClient():
             LOGGER.info("Error initializing AdrollClient during token refresh, please reauthenticate.")
             raise AdrollAuthenticationError(e)
 
-    def _read_config(self,config_path):
+    def _read_config(self):
         """
         Performs read on the provided filepath,
         returns empty dict if invalid path provided
         """
         try:
-            with open(config_path,'r') as file:
+            with open(self.config_path,'r') as file:
                 return json.load(file)
         except FileNotFoundError as _:
             LOGGER.fatal("Failed to load config in dev mode")
@@ -94,7 +94,7 @@ class AdrollClient():
             endpoint,
             params,
         )
-        
+
         if self.dev_mode :
             headers = {}
             headers['Authorization'] = 'Bearer %s' % self._access_token

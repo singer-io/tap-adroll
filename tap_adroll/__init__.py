@@ -79,10 +79,8 @@ def main():
     required_config_keys = ['start_date']
     args = parse_args(required_config_keys)
     config = args.config
-    LOGGER.info("............................:%s",args.dev)
     if args.dev:
-        LOGGER.info("11111111111111")
-        LOGGER.warning("Executing Tap in Dev mode",) 
+        LOGGER.warning("Executing Tap in Dev mode")
     client = AdrollClient(args.config_path, config, args.dev)
 
     catalog = args.catalog or Catalog([])
