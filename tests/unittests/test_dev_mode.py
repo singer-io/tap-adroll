@@ -1,7 +1,9 @@
 import json
+from requests.exceptions import HTTPError
+
 import unittest
 from unittest.mock import patch, MagicMock
-from requests.exceptions import HTTPError
+
 from tap_adroll.client import AdrollClient
 
 
