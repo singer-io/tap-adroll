@@ -22,11 +22,9 @@ class AdrollClient():
     def authenticate_request(self):
         if self.dev_mode :
             self.session = requests.Session()
-            read_config = self._read_config()
             try :
-                self._access_token = read_config['access_token']
+                self._access_token = self.config['access_token']
             except KeyError as err:
-                LOGGER.fatal("Unable to locate key %s in config",err)
                 raise Exception("Unable to locate key in config") from err
         else :
             token = {
@@ -53,18 +51,6 @@ class AdrollClient():
             LOGGER.info("Error initializing AdrollClient during token refresh, please reauthenticate.")
             raise AdrollAuthenticationError(e)
 
-    def _read_config(self):
-        """
-        Performs read on the provided filepath,
-        returns empty dict if invalid path provided
-        """
-        try:
-            with open(self.config_path,'r') as file:
-                return json.load(file)
-        except FileNotFoundError as _:
-            LOGGER.fatal("Failed to load config in dev mode")
-            return {}
-
     def _write_config(self, token):
         LOGGER.info("Credentials Refreshed")
         # Update config at config_path
@@ -76,7 +62,6 @@ class AdrollClient():
 
         with open(self.config_path, 'w') as file:
             json.dump(config, file, indent=2)
-
 
     @backoff.on_exception(backoff.constant,
                           (requests.exceptions.HTTPError),
