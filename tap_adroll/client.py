@@ -25,7 +25,7 @@ class AdrollClient():
             try :
                 self._access_token = self.config['access_token']
             except KeyError as err:
-                raise Exception("Unable to locate key in config") from err
+                raise Exception("Unable to locate access token in config") from err
         else :
             token = {
                 'access_token': self.config['access_token'],
