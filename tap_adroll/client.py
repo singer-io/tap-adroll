@@ -17,32 +17,19 @@ class AdrollClient():
         self.dev_mode = dev_mode
         self.config_path = config_path
         self.config = config
-        self.authenticate_request()
+        token = {
+            'access_token': self.config['access_token'],
+            'refresh_token': self.config['refresh_token'],
+            'token_type': 'Bearer',
+            # Set expires_in to a negative number to force the client to reauthenticate
+            'expires_in': '-30'
+        }
+        extra = {
+            'client_id': self.config['client_id'],
+            'client_secret': self.config['client_secret']
+        }
 
-    def authenticate_request(self):
-        if self.dev_mode :
-            self.session = requests.Session()
-            try :
-                self._access_token = self.config['access_token']
-            except KeyError as err:
-                raise Exception("Unable to locate access token in config") from err
-        else :
-            token = {
-                'access_token': self.config['access_token'],
-                'refresh_token': self.config['refresh_token'],
-                'token_type': 'Bearer',
-                # Set expires_in to a negative number to force the client to reauthenticate
-                'expires_in': '-30'
-            }
-            extra = {
-                'client_id': self.config['client_id'],
-                'client_secret': self.config['client_secret']
-            }
-            self.session = OAuth2Session(self.config['client_id'],
-                                         token=token,
-                                         auto_refresh_url=TOKEN_REFRESH_URL,
-                                         auto_refresh_kwargs=extra,
-                                         token_updater=self._write_config)
+        self.authenticate_request(token, extra)
         try:
             # Make an authenticated request after creating the object to any endpoint
             org = self.get('organization/get').get('results', {}).get('eid')
@@ -50,6 +37,29 @@ class AdrollClient():
         except Exception as e:
             LOGGER.info("Error initializing AdrollClient during token refresh, please reauthenticate.")
             raise AdrollAuthenticationError(e)
+
+    def authenticate_request(self, token, extra):
+        if self.dev_mode :
+            self.access_token = self.config.get('access_token')
+            if not self.access_token:
+                raise Exception("Access token config property is missing")
+
+            dev_mode_token = {
+                "refresh_token": self.config.get('refresh_token'),
+                # Using the existing access_token for dev mode
+                "access_token": self.access_token,
+                'token_type': 'Bearer'
+            }
+
+            self.session = OAuth2Session(self.config['client_id'],
+                                         token=dev_mode_token)
+        else :
+
+            self.session = OAuth2Session(self.config['client_id'],
+                                         token=token,
+                                         auto_refresh_url=TOKEN_REFRESH_URL,
+                                         auto_refresh_kwargs=extra,
+                                         token_updater=self._write_config)
 
     def _write_config(self, token):
         LOGGER.info("Credentials Refreshed")
@@ -79,10 +89,6 @@ class AdrollClient():
             endpoint,
             params,
         )
-
-        if self.dev_mode :
-            headers = {}
-            headers['Authorization'] = 'Bearer %s' % self._access_token
 
         # TODO: We should merge headers with some default headers like user_agent
         response = self.session.request(method, full_url, headers=headers, params=params, data=data)

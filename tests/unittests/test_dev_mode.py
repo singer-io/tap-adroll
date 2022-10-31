@@ -1,4 +1,5 @@
 import json
+import os
 from requests.exceptions import HTTPError
 
 import unittest
@@ -9,30 +10,41 @@ from tap_adroll.client import AdrollClient
 
 class Test_ClientDevMode(unittest.TestCase):
     """Test the dev mode functionality."""
- 
-    # Data to be written
-    mock_config = {
-    "access_token": "sample_access_token",
-    "refresh_token": "sample_refresh_token",
-    "client_id": "sample_client_id",
-    "client_secret": "sample_client_secret"
-    }
-    tmp_config_filename = "adroll_config.json"
-    # Serializing json
-    json_object = json.dumps(mock_config, indent=4)
-    
-    # Writing to sample.json
-    with open(tmp_config_filename, "w") as outfile:
-        outfile.write(json_object)
+    def setUp(self):
+        """Creates a sample config for test execution"""
+
+        # Data to be written
+        self.mock_config = {
+        "access_token": "sample_access_token",
+        "refresh_token": "sample_refresh_token",
+        "client_id": "sample_client_id",
+        "client_secret": "sample_client_secret"
+        }
+        self.tmp_config_filename = "adroll_config.json"
+
+        # Serializing json
+        json_object = json.dumps(self.mock_config, indent=4)
+        
+        # Writing to sample.json
+        with open(self.tmp_config_filename, "w") as outfile:
+            outfile.write(json_object)
+
+    def tearDown(self):
+        """Deletes the sample config"""
+        if os.path.isfile(self.tmp_config_filename):
+            os.remove(self.tmp_config_filename)
 
     @patch("requests.Session.request", return_value=MagicMock(return_value={'results': {'eid': 12345}}, status_code=200))
     def test_client_with_dev_mode(self, mock_request):
         """Checks the dev mode implementation works with existing token"""
 
         params = {"config_path": self.tmp_config_filename, "config": self.mock_config, "dev_mode": True}
+        token = {'access_token': self.mock_config['access_token'], 'refresh_token': self.mock_config['refresh_token'], 
+                'token_type': 'Bearer', 'expires_in': '-30'}
+        extra = {'client_id': self.mock_config['client_id'], 'client_secret': self.mock_config['client_secret']}
 
         client = AdrollClient(**params)
-        client.authenticate_request()
+        client.authenticate_request(token, extra)
 
         headers = {}
         headers['Authorization'] = f"Bearer {self.mock_config['access_token']}"
@@ -44,9 +56,12 @@ class Test_ClientDevMode(unittest.TestCase):
         """Checking the code flow without dev mode"""
 
         params = {"config_path": self.tmp_config_filename, "config": self.mock_config, "dev_mode": False}
+        token = {'access_token': self.mock_config['access_token'], 'refresh_token': self.mock_config['refresh_token'], 
+                'token_type': 'Bearer', 'expires_in': '-30'}
+        extra = {'client_id': self.mock_config['client_id'], 'client_secret': self.mock_config['client_secret']}
 
         client = AdrollClient(**params)
-        client.authenticate_request()
+        client.authenticate_request(token, extra)
 
         mock_request.assert_called_with("GET", "https://services.adroll.com/api/v1/organization/get", headers=None, params=None, data=None)
 
