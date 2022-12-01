@@ -12,7 +12,7 @@ setup(name='tap-adroll',
       install_requires=[
           'requests==2.23.0',
           'requests_oauthlib==1.3.0',
-          'singer-python==5.9.0',
+          'singer-python==5.13.0',
       ],
       extras_require={
           'dev': [
