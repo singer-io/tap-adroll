@@ -15,13 +15,23 @@ class Test_ClientDevMode(unittest.TestCase):
 
         # Data to be written
         self.mock_config = {
-        "access_token": "sample_access_token",
-        "refresh_token": "sample_refresh_token",
-        "client_id": "sample_client_id",
-        "client_secret": "sample_client_secret"
-        }
+                "access_token": "sample_access_token",
+                "refresh_token": "sample_refresh_token",
+                "client_id": "sample_client_id",
+                "client_secret": "sample_client_secret"
+                }
         self.tmp_config_filename = "adroll_config.json"
 
+        self.token = {
+                "access_token": self.mock_config["access_token"],
+                "refresh_token": self.mock_config["refresh_token"], 
+                "token_type": "Bearer", 
+                "expires_in": "-30"
+                }
+        self.extra = {
+                "client_id": self.mock_config["client_id"],
+                "client_secret": self.mock_config["client_secret"]
+                }
         # Serializing json
         json_object = json.dumps(self.mock_config, indent=4)
         
@@ -38,16 +48,10 @@ class Test_ClientDevMode(unittest.TestCase):
     def test_client_with_dev_mode(self, mock_request):
         """Checks the dev mode implementation works with existing token"""
 
-        params = {"config_path": self.tmp_config_filename, "config": self.mock_config, "dev_mode": True}
-        token = {'access_token': self.mock_config['access_token'], 'refresh_token': self.mock_config['refresh_token'], 
-                'token_type': 'Bearer', 'expires_in': '-30'}
-        extra = {'client_id': self.mock_config['client_id'], 'client_secret': self.mock_config['client_secret']}
+        client = AdrollClient(self.tmp_config_filename, self.mock_config, True)
+        client.authenticate_request(self.token, self.extra)
 
-        client = AdrollClient(**params)
-        client.authenticate_request(token, extra)
-
-        headers = {}
-        headers['Authorization'] = f"Bearer {self.mock_config['access_token']}"
+        headers = {"Authorization": f"Bearer {self.mock_config['access_token']}"}
 
         mock_request.assert_called_with("GET", "https://services.adroll.com/api/v1/organization/get", headers=headers, params=None, data=None)
 
@@ -55,13 +59,8 @@ class Test_ClientDevMode(unittest.TestCase):
     def test_client_without_dev_mode(self, mock_request):
         """Checking the code flow without dev mode"""
 
-        params = {"config_path": self.tmp_config_filename, "config": self.mock_config, "dev_mode": False}
-        token = {'access_token': self.mock_config['access_token'], 'refresh_token': self.mock_config['refresh_token'], 
-                'token_type': 'Bearer', 'expires_in': '-30'}
-        extra = {'client_id': self.mock_config['client_id'], 'client_secret': self.mock_config['client_secret']}
-
-        client = AdrollClient(**params)
-        client.authenticate_request(token, extra)
+        client = AdrollClient(self.tmp_config_filename, self.mock_config, False)
+        client.authenticate_request(self.token, self.extra)
 
         mock_request.assert_called_with("GET", "https://services.adroll.com/api/v1/organization/get", headers=None, params=None, data=None)
 
@@ -72,8 +71,9 @@ class Test_ClientDevMode(unittest.TestCase):
         Check whether the request backoffs properly for 3 times in case of HTTPError.
         """
         mock_send.side_effect = HTTPError
-        params = {"config_path": self.tmp_config_filename, "config": self.mock_config, "dev_mode": True}
-        client = AdrollClient(**params)
+        client = AdrollClient(self.tmp_config_filename, self.mock_config, True)
+
         with self.assertRaises(HTTPError):
             client._make_request('GET', 'organization/get')
         self.assertEquals(mock_send.call_count, 3)
+        
