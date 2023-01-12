@@ -17,6 +17,17 @@ class AdrollClient():
         self.dev_mode = dev_mode
         self.config_path = config_path
         self.config = config
+
+        self.authenticate_request()
+        try:
+            # Make an authenticated request after creating the object to any endpoint
+            org = self.get('organization/get').get('results', {}).get('eid')
+            self.organization_eid = org
+        except Exception as e:
+            LOGGER.info("Error initializing AdrollClient during token refresh, please reauthenticate.")
+            raise AdrollAuthenticationError(e)
+
+    def authenticate_request(self):
         token = {
             'access_token': self.config['access_token'],
             'refresh_token': self.config['refresh_token'],
@@ -28,17 +39,6 @@ class AdrollClient():
             'client_id': self.config['client_id'],
             'client_secret': self.config['client_secret']
         }
-
-        self.authenticate_request(token, extra)
-        try:
-            # Make an authenticated request after creating the object to any endpoint
-            org = self.get('organization/get').get('results', {}).get('eid')
-            self.organization_eid = org
-        except Exception as e:
-            LOGGER.info("Error initializing AdrollClient during token refresh, please reauthenticate.")
-            raise AdrollAuthenticationError(e)
-
-    def authenticate_request(self, token, extra):
         if self.dev_mode :
             self.access_token = self.config.get('access_token')
             if not self.access_token:

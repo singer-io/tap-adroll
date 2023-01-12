@@ -58,7 +58,7 @@ class Test_ClientDevMode(unittest.TestCase):
         """Checks the dev mode implementation works with existing token"""
 
         client = AdrollClient(self.tmp_config_filename, self.mock_config, True)
-        client.authenticate_request(self.token, self.extra)
+        client.authenticate_request()
 
         headers = {"Authorization": f"Bearer {self.mock_config['access_token']}"}
 
@@ -80,7 +80,7 @@ class Test_ClientDevMode(unittest.TestCase):
         """Checking the code flow without dev mode"""
 
         client = AdrollClient(self.tmp_config_filename, self.mock_config, False)
-        client.authenticate_request(self.token, self.extra)
+        client.authenticate_request()
 
         mock_request.assert_called_with(
             "GET",
