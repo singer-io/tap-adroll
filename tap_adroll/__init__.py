@@ -11,10 +11,12 @@ LOGGER = singer.get_logger()
 @utils.handle_top_exception(LOGGER)
 def main():
     required_config_keys = ['start_date']
-    args = singer.parse_args(required_config_keys)
-
+    args = utils.parse_args(required_config_keys)
     config = args.config
-    client = AdrollClient(args.config_path, config)
+    if args.dev:
+        LOGGER.warning("Executing Tap in Dev mode")
+    client = AdrollClient(args.config_path, config, args.dev)
+
     catalog = args.catalog or Catalog([])
     state = args.state
 
