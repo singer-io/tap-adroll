@@ -40,14 +40,13 @@ class AdrollClient():
             'client_secret': self.config['client_secret']
         }
         if self.dev_mode :
-            self.access_token = self.config.get('access_token')
-            if not self.access_token:
+            if not self.config.get('access_token'):
                 raise Exception("Access token config property is missing")
 
             dev_mode_token = {
                 "refresh_token": self.config.get('refresh_token'),
                 # Using the existing access_token for dev mode
-                "access_token": self.access_token,
+                "access_token": self.config.get('access_token'),
                 'token_type': 'Bearer'
             }
 
