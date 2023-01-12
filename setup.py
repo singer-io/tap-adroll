@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='tap-adroll',
-      version='1.0.2',
+      version='1.1.0',
       description='Singer.io tap for extracting data from Adroll',
       author='Stitch',
       url='https://singer.io',
