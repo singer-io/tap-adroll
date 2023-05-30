@@ -3,14 +3,14 @@
 from setuptools import setup
 
 setup(name='tap-adroll',
-      version='1.1.0',
+      version='1.1.1',
       description='Singer.io tap for extracting data from Adroll',
       author='Stitch',
       url='https://singer.io',
       classifiers=['Programming Language :: Python :: 3 :: Only'],
       py_modules=['tap_adroll'],
       install_requires=[
-          'requests==2.23.0',
+          'requests==2.31.0',
           'requests_oauthlib==1.3.0',
           'singer-python==5.13.0',
       ],

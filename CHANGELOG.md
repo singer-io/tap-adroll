@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.1
+  * Dependabot update [#30](https://github.com/singer-io/tap-adroll/pull/30)
+
 ## 1.1.0
   * Adds support for dev mode [#27](https://github.com/singer-io/tap-adroll/pull/27)
 
