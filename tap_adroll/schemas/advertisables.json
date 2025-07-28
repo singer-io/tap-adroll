@@ -22,6 +22,18 @@
         "string"
       ]
     },
+    "is_html5_enabled": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "ecomm_platform_plan": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
     "rollcrawl_enabled": {
       "type": [
         "null",
