@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.1
+  * Dependency upgrades [#31](https://github.com/singer-io/tap-adroll/pull/31)
+
 ## 1.1.0
   * Adds support for dev mode [#27](https://github.com/singer-io/tap-adroll/pull/27)
 
