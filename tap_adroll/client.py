@@ -12,6 +12,7 @@ TOKEN_REFRESH_URL = 'https://services.adroll.com/auth/token'
 
 class AdrollAuthenticationError(Exception):
     pass
+
 class AdrollClient():
     def __init__(self, config_path, config, dev_mode = False):
         self.dev_mode = dev_mode
@@ -64,16 +65,16 @@ class AdrollClient():
         LOGGER.info("Credentials Refreshed")
         # Update config at config_path
         with open(self.config_path) as file:
-            config = json.load(file)
+            config_file = json.load(file)
 
-        config['refresh_token'] = token['refresh_token']
-        config['access_token'] = token['access_token']
+        config_file['refresh_token'] = token['refresh_token']
+        config_file['access_token'] = token['access_token']
 
         self.config['access_token'] = token['access_token']
         self.config['refresh_token'] = token['refresh_token']
 
         with open(self.config_path, 'w') as file:
-            json.dump(config, file, indent=2)
+            json.dump(config_file, file, indent=2)
 
     def _refresh_token(self):
         """
