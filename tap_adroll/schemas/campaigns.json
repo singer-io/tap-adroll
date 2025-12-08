@@ -241,6 +241,48 @@
           "string"
         ]
       }
+    },
+    "is_demo_interest": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "is_unsegmented": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "is_lookalike": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "is_billable": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "is_ctv": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "is_contextual": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "billing_auth_status": {
+      "type": [
+        "null",
+        "string"
+      ]
     }
   }
 }

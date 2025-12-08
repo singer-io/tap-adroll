@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.0
+  * Update in advertisable and campaigns schema files. Fixed client connection handling [#34](https://github.com/singer-io/tap-adroll/pull/34)
+
 ## 1.1.1
   * Dependency upgrades [#31](https://github.com/singer-io/tap-adroll/pull/31)
 

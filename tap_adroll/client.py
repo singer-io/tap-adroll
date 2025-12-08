@@ -12,6 +12,7 @@ TOKEN_REFRESH_URL = 'https://services.adroll.com/auth/token'
 
 class AdrollAuthenticationError(Exception):
     pass
+
 class AdrollClient():
     def __init__(self, config_path, config, dev_mode = False):
         self.dev_mode = dev_mode
@@ -64,13 +65,41 @@ class AdrollClient():
         LOGGER.info("Credentials Refreshed")
         # Update config at config_path
         with open(self.config_path) as file:
-            config = json.load(file)
+            config_file = json.load(file)
 
-        config['refresh_token'] = token['refresh_token']
-        config['access_token'] = token['access_token']
+        config_file['refresh_token'] = token['refresh_token']
+        config_file['access_token'] = token['access_token']
+
+        self.config['access_token'] = token['access_token']
+        self.config['refresh_token'] = token['refresh_token']
 
         with open(self.config_path, 'w') as file:
-            json.dump(config, file, indent=2)
+            json.dump(config_file, file, indent=2)
+
+    def _refresh_token(self):
+        """
+        Refresh the access token using the refresh token.
+        Updates the session with new credentials and writes them to config.
+
+        Raises:
+            Exception: If token refresh fails
+        """
+        try:
+            LOGGER.info("Attempting to refresh access token...")
+            # Use OAuth2Session's refresh_token method to get new credentials
+            new_token = self.session.refresh_token(
+                TOKEN_REFRESH_URL,
+                refresh_token=self.config['refresh_token'],
+                client_id=self.config['client_id'],
+                client_secret=self.config['client_secret']
+            )
+            LOGGER.info("Token refreshed successfully. Updating config...")
+            # Update config file and in-memory config with new tokens
+            self._write_config(new_token)
+            return new_token
+        except Exception as refresh_err:
+            LOGGER.error("Failed to refresh token: %s", refresh_err)
+            raise
 
     @backoff.on_exception(backoff.constant,
                           (requests.exceptions.HTTPError),
@@ -89,11 +118,22 @@ class AdrollClient():
             params,
         )
 
-        # TODO: We should merge headers with some default headers like user_agent
-        response = self.session.request(method, full_url, headers=headers, params=params, data=data)
-        response.raise_for_status()
-        # TODO: Check error status, rate limit, etc.
-        return response.json()
+        try:
+            # TODO: We should merge headers with some default headers like user_agent
+            response = self.session.request(method, full_url, headers=headers, params=params, data=data)
+            response.raise_for_status()
+            # TODO: Check error status, rate limit, etc.
+            return response.json()
+        except requests.exceptions.HTTPError as err:
+            status = getattr(err.response, "status_code", None)
+            if (status in (401, 403)) and not self.dev_mode:
+                LOGGER.info("Auth error (%s). Attempting manual token refresh.", status)
+                self._refresh_token()
+                # Retry the request with the newly refreshed token
+                retry_resp = self.session.request(method, full_url, headers=headers, params=params, data=data)
+                retry_resp.raise_for_status()
+                return retry_resp.json()
+            raise
 
     def get(self, url, headers=None, params=None):
         return self._make_request("GET", url, headers=headers, params=params)

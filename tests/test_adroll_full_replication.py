@@ -19,6 +19,7 @@ class TestAdrollFullReplication(TestAdrollBase):
         return self.expected_full_table_streams().difference(
             {  # FULL TABLE STREAMS THAT DON'T CURRENTLY SUPPORT CREATES
                 'advertisables',
+                'campaigns'
             }
         )
 

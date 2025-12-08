@@ -496,12 +496,6 @@
         "boolean"
       ]
     },
-    "cm_networks": {
-      "type": [
-        "null",
-        "string"
-      ]
-    },
     "product_name": {
       "type": [
         "null",
@@ -594,6 +588,60 @@
       ]
     },
     "blacklisted_sites": {
+      "type": [
+        "null",
+        "array"
+      ],
+      "items": {
+        "type": [
+          "null",
+          "string"
+        ]
+      }
+    },
+    "is_html5_enabled": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "account_billing_period": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "digital_advertisable_budget": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "industry": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "company_size": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "monthly_unique_visitors": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "ecomm_platform_plan": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "goals": {
       "type": [
         "null",
         "array"
