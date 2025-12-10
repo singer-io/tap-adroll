@@ -66,8 +66,9 @@ class Test_ClientDevMode(unittest.TestCase):
             "GET",
             "https://services.adroll.com/api/v1/organization/get",
             headers=headers,
-            params=None,
             data=None,
+            files=None,
+            params=None
         )
 
     @patch(
@@ -87,7 +88,6 @@ class Test_ClientDevMode(unittest.TestCase):
             "https://services.adroll.com/api/v1/organization/get",
             headers=None,
             data=None,
-            files=None,
             params=None
         )
 
