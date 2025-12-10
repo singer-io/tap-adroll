@@ -108,7 +108,6 @@ class AdReports(Stream):
 
             # Write bookmark after syncing all Advertisables for the day
             singer.bookmarks.write_bookmark(self.state, self.stream_name, self.replication_keys[0], utils.strftime(report_date))
-            singer.write_state(self.state)
 
 
 class Segments(Stream):
@@ -130,6 +129,7 @@ class Segments(Stream):
             })
             for rec in records.get('results'):
                 yield rec
+
 
 class Campaigns(Stream):
     stream_id = 'campaigns'

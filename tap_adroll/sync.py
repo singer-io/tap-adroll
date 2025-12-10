@@ -34,3 +34,4 @@ def do_sync(client, config, state, catalog):
                                           stream.schema.to_dict(),
                                           metadata.to_map(stream.metadata))
                 )
+            singer.write_state(state)

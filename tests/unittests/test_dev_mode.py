@@ -66,8 +66,9 @@ class Test_ClientDevMode(unittest.TestCase):
             "GET",
             "https://services.adroll.com/api/v1/organization/get",
             headers=headers,
-            params=None,
             data=None,
+            files=None,
+            params=None
         )
 
     @patch(
@@ -86,8 +87,8 @@ class Test_ClientDevMode(unittest.TestCase):
             "GET",
             "https://services.adroll.com/api/v1/organization/get",
             headers=None,
-            params=None,
             data=None,
+            params=None
         )
 
     @patch("tap_adroll.client.requests.Session.request")
@@ -100,4 +101,4 @@ class Test_ClientDevMode(unittest.TestCase):
 
         with self.assertRaises(HTTPError):
             client._make_request("GET", "organization/get")
-        self.assertEquals(mock_send.call_count, 3)
+        self.assertEqual(mock_send.call_count, 3)
