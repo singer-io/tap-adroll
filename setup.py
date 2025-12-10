@@ -10,18 +10,18 @@ setup(name='tap-adroll',
       classifiers=['Programming Language :: Python :: 3 :: Only'],
       py_modules=['tap_adroll'],
       install_requires=[
-          'requests==2.32.4',
-          'requests_oauthlib==1.3.1',
-          'singer-python==5.13.2',
+          'requests==2.32.5',
+          'requests_oauthlib==2.0.0',
+          'singer-python==6.3.0',
       ],
       extras_require={
           'dev': [
-              'pylint==2.5.3',
+              'pylint',
               'ipdb',
               'nose',
           ],
           'test': [
-              'simplejson==3.11.1',
+              'simplejson',
           ]
       },
       entry_points='''

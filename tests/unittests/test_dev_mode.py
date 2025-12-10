@@ -100,4 +100,4 @@ class Test_ClientDevMode(unittest.TestCase):
 
         with self.assertRaises(HTTPError):
             client._make_request("GET", "organization/get")
-        self.assertEquals(mock_send.call_count, 3)
+        self.assertEqual(mock_send.call_count, 3)

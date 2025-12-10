@@ -27,6 +27,7 @@ def main():
         LOGGER.info("Starting discovery mode")
         catalog = do_discover()
         write_catalog(catalog)
+        LOGGER.info("Finished discovery mode")
     else:
         LOGGER.info("Starting sync mode")
         do_sync(client, config, state, catalog)
