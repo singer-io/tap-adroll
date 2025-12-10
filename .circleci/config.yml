@@ -11,7 +11,7 @@ jobs:
             uv venv --python 3.12 /usr/local/share/virtualenvs/tap-adroll
             source /usr/local/share/virtualenvs/tap-adroll/bin/activate
             uv pip install -U setuptools
-            uv pip install .[dev,test]
+            uv pip install .[dev]
       - run:
           name: 'JSON Validator'
           command: |
@@ -41,6 +41,7 @@ jobs:
             uv pip install --upgrade awscli
             aws s3 cp s3://com-stitchdata-dev-deployment-assets/environments/tap-tester/tap_tester_sandbox dev_env.sh
             source dev_env.sh
+            pip install .[dev,test] # Install tap for the test client subclass usage
             run-test --tap=tap-adroll tests
 workflows:
   version: 2
