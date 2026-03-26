@@ -10,7 +10,7 @@ setup(name='tap-adroll',
       classifiers=['Programming Language :: Python :: 3 :: Only'],
       py_modules=['tap_adroll'],
       install_requires=[
-          'requests==2.32.5',
+          'requests==2.33.0',
           'requests_oauthlib==2.0.0',
           'singer-python==6.3.0',
       ],
