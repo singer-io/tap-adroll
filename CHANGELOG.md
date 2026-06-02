@@ -1,5 +1,9 @@
 # Changelog
 
+# 1.2.1
+  * Bump requests to 2.33.0 for security updates [#37](https://github.com/singer-io/tap-adroll/pull/37)
+
+
 ## 1.2.0
   * Update in advertisable and campaigns schema files. Fixed client connection handling [#34](https://github.com/singer-io/tap-adroll/pull/34)
 
