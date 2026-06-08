@@ -22,6 +22,12 @@
         "string"
       ]
     },
+    "billing_auth_status": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
     "bid_strategy": {
       "type": [
         "null",
