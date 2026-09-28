@@ -1,5 +1,12 @@
 # Changelog
 
+
+## Unreleased
+
+* Bump `requests` from `2.33.0` to `2.34.2` (Main/Runtime)
+* Bump `singer-python` from `6.3.0` to `6.8.0` (Main/Runtime)
+
+
 # 1.2.1
   * Bump requests to 2.33.0 for security updates [#37](https://github.com/singer-io/tap-adroll/pull/37)
 
